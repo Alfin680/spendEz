@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:spendez_main/homeScreen.dart';
+import 'package:spendez_main/home.dart';
 import 'package:spendez_main/login.dart';
 import 'package:spendez_main/signup.dart';
 import 'package:spendez_main/getStart.dart';
@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
         '/onboard': (context) => LoginSelectionPage(),
         '/login': (context) => LoginPage(),
         '/signup': (context) => SignUpScreen(),
-        '/home': (context) => HomePage(),
+        '/home': (context) => HomeScr(),
       },
     );
   }

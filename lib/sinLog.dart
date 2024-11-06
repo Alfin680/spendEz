@@ -1,38 +1,3 @@
-// import 'package:flutter/material.dart';
-
-// class Sinlog extends StatelessWidget {
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//       title: 'Login Page',
-//       theme: ThemeData(
-//         primarySwatch: Colors.blue,
-//       ),
-//       home: LoginSelectionPage(),
-//     );
-//   }
-// }
-
-// class LoginSelectionPage extends StatelessWidget {
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       body: Stack(
-//         fit: StackFit.expand,
-//         children: [
-//           // Background Image
-//           Image.asset(
-//             'assets/onBG.png',
-//             fit: BoxFit.cover,
-//           ),
-//           Column(
-
-//           )
-//         ],
-//       ),
-//     );
-//   }
-// }
 import 'package:flutter/material.dart';
 
 class Sinlog extends StatelessWidget {

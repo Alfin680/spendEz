@@ -95,6 +95,7 @@ class LoginPage extends StatelessWidget {
                   ),
                   onPressed: () {
                     // Login action
+                    Navigator.pushNamed(context, '/home');
                   },
                   child: Text(
                     "LOGIN",
