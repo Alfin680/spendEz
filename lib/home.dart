@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:spendez_main/addTransaction.dart';
 
 class HomeScr extends StatelessWidget {
   @override
@@ -10,6 +11,9 @@ class HomeScr extends StatelessWidget {
         primarySwatch: Colors.purple,
       ),
       home: HomeScreen(),
+      routes: {
+        '/add': (context) => AddTransactionScreen(), // Define the route for adding transactions
+      },
     );
   }
 }
@@ -26,6 +30,10 @@ class _HomeScreenState extends State<HomeScreen> {
     {"date": "16 AUG", "name": "Lunch", "category": "Food", "amount": -200},
     {"date": "16 AUG", "name": "Petrol", "category": "Travel", "amount": -500},
     {"date": "16 AUG", "name": "Bus", "category": "Travel", "amount": -100},
+    {"date": "16 AUG", "name": "Lunch", "category": "Food", "amount": -300},
+    {"date": "16 AUG", "name": "Breakfast", "category": "Food", "amount": -300},
+    {"date": "16 AUG", "name": "Fees", "category": "Bill", "amount": -300},
+    {"date": "16 AUG", "name": "Breakfast", "category": "Food", "amount": -300},
     {"date": "16 AUG", "name": "Breakfast", "category": "Food", "amount": -300},
   ];
 
@@ -50,10 +58,6 @@ class _HomeScreenState extends State<HomeScreen> {
               // Header and Add Transaction
               Row(
                 children: [
-                  IconButton(
-                    icon: Icon(Icons.arrow_back),
-                    onPressed: () {},
-                  ),
                   Text(
                     "Home",
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
@@ -95,7 +99,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       width: double.infinity,
                       height: 50,
                       child: ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/add');
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Color(0xFF7F07FF),
                           shape: RoundedRectangleBorder(
@@ -173,31 +179,35 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ],
             ),
-            child: BottomNavigationBar(
-              backgroundColor: Colors.transparent, // To use Container's color
-              elevation: 0, // Remove default shadow
-              selectedItemColor: const Color.fromARGB(255, 0, 58, 216),
-              unselectedItemColor: const Color.fromARGB(179, 0, 0, 0),
-              currentIndex: _selectedIndex,
-              onTap: _onItemTapped,
-              items: [
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.home),
-                  label: 'Home',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.attach_money),
-                  label: 'Expense',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.bar_chart),
-                  label: 'Insights',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.lightbulb),
-                  label: 'Tips',
-                ),
-              ],
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(30),
+              child: BottomNavigationBar(
+                backgroundColor: Colors.transparent, // Use container's color
+                elevation: 0, // Remove default shadow
+                selectedItemColor: const Color.fromARGB(255, 0, 58, 216),
+                unselectedItemColor: const Color.fromARGB(179, 255, 255, 255),
+                currentIndex: _selectedIndex,
+                onTap: _onItemTapped,
+                type: BottomNavigationBarType.fixed,
+                items: [
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.home),
+                    label: 'Home',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.attach_money),
+                    label: 'Expense',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.bar_chart),
+                    label: 'Insights',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.lightbulb),
+                    label: 'Tips',
+                  ),
+                ],
+              ),
             ),
           ),
         ),

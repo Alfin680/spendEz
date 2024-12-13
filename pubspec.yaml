@@ -62,6 +62,12 @@ flutter:
     - assets/pana.png
     - assets/onBG.png
     - assets/log.png
+    - assets/icons/bills.png
+    - assets/icons/shopping.png
+    - assets/icons/other.png
+    - assets/icons/fun.png
+    - assets/icons/food.png
+    - assets/icons/travel.png
 
 
   # To add assets to your application, add an assets section, like this:

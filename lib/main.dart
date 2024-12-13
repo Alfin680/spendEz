@@ -25,11 +25,8 @@ class MyApp extends StatelessWidget {
         '/login': (context) => LoginPage(),
         '/signup': (context) => SignUpScreen(),
         '/home': (context) => HomeScr(),
+        //'/add': (context) => AddTransactionScreen(),
       },
     );
   }
 }
-
-// Placeholder widgets for Get Started, Login, and Home pages
-
-
