@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
-class Login extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: LoginPage(),
-      debugShowCheckedModeBanner: false,
-    );
-  }
-}
+// class Login extends StatelessWidget {
+//   @override
+//   Widget build(BuildContext context) {
+//     return MaterialApp(
+//       home: LoginPage(),
+//       debugShowCheckedModeBanner: false,
+//     );
+//   }
+// }
 
 class LoginPage extends StatelessWidget {
   @override

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:spendez_main/addTransaction.dart';
+import 'package:spendez_main/expense.dart';
+import 'package:spendez_main/overallInsights.dart';
 
 class HomeScr extends StatelessWidget {
   @override
@@ -12,7 +14,9 @@ class HomeScr extends StatelessWidget {
       ),
       home: HomeScreen(),
       routes: {
-        '/add': (context) => AddTransactionScreen(), // Define the route for adding transactions
+        '/add': (context) => AddTransactionScreen(),
+        '/expense': (context) =>
+            CategoryExpenseApp() // Define the route for adding transactions
       },
     );
   }
@@ -39,10 +43,39 @@ class _HomeScreenState extends State<HomeScreen> {
 
   int _selectedIndex = 0;
 
+  // Handle navigation based on index
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
+
+    // Navigate to respective pages
+    switch (index) {
+      case 0: // Home
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomeScr()),
+        );
+        break;
+      case 1: // Expense
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => CategoryExpenseApp()),
+        );
+        break;
+      case 2: // Insights
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => InsightsPage()),
+        );
+        break;
+      case 3:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomeScreen()),
+        );
+        break;
+    }
   }
 
   @override
