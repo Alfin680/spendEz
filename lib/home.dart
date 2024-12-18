@@ -94,7 +94,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Text(
                     "Home",
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
