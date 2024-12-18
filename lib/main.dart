@@ -6,10 +6,10 @@ import 'package:spendez_main/getStart.dart';
 import 'package:spendez_main/sinLog.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(SpendEz());
 }
 
-class MyApp extends StatelessWidget {
+class SpendEz extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -25,7 +25,6 @@ class MyApp extends StatelessWidget {
         '/login': (context) => LoginPage(),
         '/signup': (context) => SignUpScreen(),
         '/home': (context) => HomeScr(),
-        //'/add': (context) => AddTransactionScreen(),
       },
     );
   }

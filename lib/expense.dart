@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:spendez_main/home.dart';
 import 'package:spendez_main/overallInsights.dart';
+import 'package:spendez_main/tips.dart';
 
 class CategoryExpenseApp extends StatelessWidget {
   @override
@@ -22,24 +23,15 @@ class CategoryExpenseScreen extends StatefulWidget {
 }
 
 class _CategoryExpenseScreenState extends State<CategoryExpenseScreen> {
-  // List of categories and their icons
-  final List<Map<String, String>> categories = [
-    {"name": "Food", "icon": "assets/icons/food.png"},
-    {"name": "Travel", "icon": "assets/icons/travel.png"},
-    {"name": "Bills", "icon": "assets/icons/bills.png"},
-    {"name": "Shopping", "icon": "assets/icons/shopping.png"},
-    {"name": "Fun", "icon": "assets/icons/fun.png"},
-    {"name": "Other", "icon": "assets/icons/other.png"},
-  ];
+  int _selectedIndex = 1;
 
-  int _selectedIndex = 1; // Default selected index for 'Expense'
-
-  // Handle bottom navigation
+  // Handle navigation based on index
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
 
+    // Navigate to respective pages
     switch (index) {
       case 0: // Home
         Navigator.pushReplacement(
@@ -48,7 +40,10 @@ class _CategoryExpenseScreenState extends State<CategoryExpenseScreen> {
         );
         break;
       case 1: // Expense
-        // Already on Expense, no action needed
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => CategoryExpenseApp()),
+        );
         break;
       case 2: // Insights
         Navigator.pushReplacement(
@@ -56,14 +51,24 @@ class _CategoryExpenseScreenState extends State<CategoryExpenseScreen> {
           MaterialPageRoute(builder: (context) => InsightsPage()),
         );
         break;
-      case 3: // Tips (Placeholder: Navigate to HomeScreen for now)
+      case 3: // Tips
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => HomeScr()),
+          MaterialPageRoute(builder: (context) => Tips()),
         );
         break;
     }
   }
+
+  // List of categories and their icons
+  final List<Map<String, String>> categories = [
+    {"name": "Food", "icon": "assets/icons/Efood.png"},
+    {"name": "Travel", "icon": "assets/icons/Etravel.png"},
+    {"name": "Bills", "icon": "assets/icons/Ebills.png"},
+    {"name": "Shopping", "icon": "assets/icons/Eshopping.png"},
+    {"name": "Fun", "icon": "assets/icons/Efun.png"},
+    {"name": "Other", "icon": "assets/icons/Eother.png"},
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -90,7 +95,10 @@ class _CategoryExpenseScreenState extends State<CategoryExpenseScreen> {
           children: [
             Text(
               "Click to view the Statistics of each category",
-              style: TextStyle(color: Colors.grey, fontSize: 14),
+              style: TextStyle(
+                color: const Color.fromARGB(255, 0, 0, 0),
+                fontSize: 20,
+              ),
             ),
             SizedBox(height: 16),
             Expanded(
@@ -136,8 +144,8 @@ class _CategoryExpenseScreenState extends State<CategoryExpenseScreen> {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(30),
               child: BottomNavigationBar(
-                backgroundColor: Colors.transparent,
-                elevation: 0,
+                backgroundColor: Colors.transparent, // Use container's color
+                elevation: 0, // Remove default shadow
                 selectedItemColor: const Color.fromARGB(255, 0, 58, 216),
                 unselectedItemColor: const Color.fromARGB(179, 255, 255, 255),
                 currentIndex: _selectedIndex,
@@ -187,7 +195,14 @@ class CategoryTile extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.purple.shade700,
+          gradient: LinearGradient(
+            colors: [
+              Color(0xFF7F07FF),
+              Color(0xFF4C0499),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
@@ -200,11 +215,12 @@ class CategoryTile extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            // Correct usage of Image.asset for icons
             Image.asset(
               iconPath,
-              height: 50,
-              width: 50,
-              color: Colors.white,
+              width: 100,
+              height: 100,
+              fit: BoxFit.contain,
             ),
             SizedBox(height: 8),
             Text(

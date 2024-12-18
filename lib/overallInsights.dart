@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:spendez_main/expense.dart';
 import 'package:spendez_main/home.dart';
+import 'package:spendez_main/tips.dart';
 
 class InsightsPage extends StatefulWidget {
   @override
@@ -37,7 +38,7 @@ class _InsightsPageState extends State<InsightsPage> {
       case 3: // Tips
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => HomeScr()),
+          MaterialPageRoute(builder: (context) => Tips()),
         );
         break;
     }

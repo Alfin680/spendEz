@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:spendez_main/addTransaction.dart';
 import 'package:spendez_main/expense.dart';
 import 'package:spendez_main/overallInsights.dart';
+import 'package:spendez_main/tips.dart';
 
 class HomeScr extends StatelessWidget {
   @override
@@ -10,13 +11,13 @@ class HomeScr extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Expense Tracker',
       theme: ThemeData(
-        primarySwatch: Colors.purple,
+        primarySwatch: Colors.blue,
       ),
       home: HomeScreen(),
       routes: {
         '/add': (context) => AddTransactionScreen(),
-        '/expense': (context) =>
-            CategoryExpenseApp() // Define the route for adding transactions
+        '/expense': (context) => CategoryExpenseApp(),
+        '/tips': (context) => Tips()
       },
     );
   }
@@ -72,7 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
       case 3:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => HomeScreen()),
+          MaterialPageRoute(builder: (context) => Tips()),
         );
         break;
     }
@@ -118,14 +119,17 @@ class _HomeScreenState extends State<HomeScreen> {
                     Text(
                       "Track your Expense",
                       style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
                     SizedBox(height: 8),
                     Text(
                       "Click the add button below to track your individual expenses",
-                      style: TextStyle(color: Colors.grey),
+                      style: TextStyle(
+                          color: const Color.fromARGB(255, 0, 0, 0),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400),
                     ),
                     SizedBox(height: 16),
                     SizedBox(
@@ -269,17 +273,17 @@ class TransactionItem extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color.fromARGB(255, 0, 0, 0)),
         ),
         child: ListTile(
           leading: CircleAvatar(
-            backgroundColor: Colors.purple[100],
+            backgroundColor: const Color.fromARGB(131, 101, 113, 245),
             child: Text(
               date,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.purple,
+                color: const Color.fromARGB(255, 51, 0, 255),
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
               ),
