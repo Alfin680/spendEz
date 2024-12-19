@@ -94,8 +94,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor:
                           Colors.transparent, // Transparent background
-                      shadowColor: Colors
-                          .transparent, // Remove shadow to keep gradient clear
+                      shadowColor: const Color.fromARGB(
+                          255, 0, 0, 0), // Remove shadow to keep gradient clear
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(24),
                       ),
