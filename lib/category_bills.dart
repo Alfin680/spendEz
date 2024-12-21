@@ -68,10 +68,16 @@ class _BillScreenState extends State<BillScreen> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => CategoryExpenseApp()),
-            );
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context); // Navigate back if possible
+            } else {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                    builder: (context) =>
+                        CategoryExpenseApp()), // Explicitly navigate to a fallback page
+              );
+            }
           },
         ),
         title: Text(
