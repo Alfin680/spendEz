@@ -401,7 +401,7 @@ class _InsightsPageState extends State<InsightsPage> {
               child: BottomNavigationBar(
                 backgroundColor: Colors.transparent,
                 elevation: 0,
-                selectedItemColor: const Color.fromARGB(255, 0, 58, 216),
+                selectedItemColor: const Color(0xFF7F07FF),
                 unselectedItemColor: const Color.fromARGB(179, 255, 255, 255),
                 currentIndex: _selectedIndex,
                 onTap: _onItemTapped,

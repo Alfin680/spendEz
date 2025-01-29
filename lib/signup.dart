@@ -73,23 +73,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
       );
 
       if (response.statusCode == 201) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text('Success'),
-              content: Text('User signed up successfully!'),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/home');
-                  },
-                  child: Text('OK'),
-                ),
-              ],
-            );
-          },
+        // Show success SnackBar at the top of the screen
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Sign up successful!'),
+            backgroundColor: Color.fromARGB(255, 156, 96, 221),
+            behavior: SnackBarBehavior.floating,
+            margin: EdgeInsets.only(top: 50, left: 50, right: 50),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
+          ),
         );
+
+        // Navigate to home page after success
+        Future.delayed(Duration(seconds: 2), () {
+          Navigator.pushReplacementNamed(context, '/home');
+        });
       } else {
         showDialog(
           context: context,

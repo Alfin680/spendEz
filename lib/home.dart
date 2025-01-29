@@ -221,7 +221,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: BottomNavigationBar(
                 backgroundColor: Colors.transparent, // Use container's color
                 elevation: 0, // Remove default shadow
-                selectedItemColor: const Color.fromARGB(255, 0, 58, 216),
+                selectedItemColor: const Color(0xFF7F07FF),
                 unselectedItemColor: const Color.fromARGB(179, 255, 255, 255),
                 currentIndex: _selectedIndex,
                 onTap: _onItemTapped,

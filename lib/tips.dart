@@ -160,7 +160,7 @@ class _TipsScreenState extends State<TipsScreen> {
               child: BottomNavigationBar(
                 backgroundColor: Colors.transparent,
                 elevation: 0,
-                selectedItemColor: Color.fromARGB(255, 0, 58, 216),
+                selectedItemColor: Color(0xFF7F07FF),
                 unselectedItemColor: Colors.white70,
                 currentIndex: _selectedIndex,
                 onTap: _onItemTapped,
