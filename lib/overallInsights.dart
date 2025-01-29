@@ -15,7 +15,7 @@ class InsightsPage extends StatefulWidget {
 }
 
 class _InsightsPageState extends State<InsightsPage> {
-  String _selectedDuration = 'Month'; // Default duration
+  String _selectedDuration = 'Month'; // Default duration.
   double _totalSpent = 400; // Total spent (from backend)
   final List<String> _durations = ['Week', 'Month', 'Year'];
 

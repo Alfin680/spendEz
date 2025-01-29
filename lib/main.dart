@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+  import 'package:flutter/material.dart';
 import 'package:spendez_main/home.dart';
 import 'package:spendez_main/login.dart';
 import 'package:spendez_main/signup.dart';
@@ -14,11 +14,11 @@ class SpendEz extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Navigation Example',
+      title: 'Navigation',
       theme: ThemeData(
         primarySwatch: Colors.purple,
       ),
-      initialRoute: '/', // Set SignUpScreen as initial route for now
+      initialRoute: '/',
       routes: {
         '/': (context) => GetStartedPage(),
         '/onboard': (context) => LoginSelectionPage(),

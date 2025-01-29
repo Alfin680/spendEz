@@ -46,6 +46,11 @@ import mysql.connector
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash
+from werkzeug.security import check_password_hash
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
 
 app = Flask(__name__)
 CORS(app)
@@ -55,7 +60,7 @@ def get_db_connection():
     conn = mysql.connector.connect(
         host='localhost',
         user='root',
-        password='njn@2003'
+        password='Alfin@2022'
     )
     cursor = conn.cursor()
     cursor.execute("CREATE DATABASE IF NOT EXISTS finance_db")
@@ -66,7 +71,7 @@ def get_db_connection():
     conn = mysql.connector.connect(
         host='localhost',
         user='root',
-        password='njn@2003',
+        password='Alfin@2022',
         database='finance_db'
     )
     return conn
@@ -77,45 +82,6 @@ def home():
     return "Flask Backend is running"
 
 
-# Sign-Up Endpoint to handle user registration
-# @app.route('/signup', methods=['POST'])
-# def signup():
-#     try:
-#         # Extract data from request
-#         username = request.json['username']
-#         email = request.json['email']
-#         password = request.json['password']
-#         # confirm_password = request.json.get('', 'User')  # Default role is 'User'
-
-#         # Hash the password
-#         hashed_password = generate_password_hash(password)
-
-#         conn = get_db_connection()
-#         cursor = conn.cursor()
-
-#         # Ensure the users table exists with the required columns
-#         cursor.execute("""
-#             CREATE TABLE IF NOT EXISTS user (
-#                 user_id INT AUTO_INCREMENT PRIMARY KEY,
-#                 username VARCHAR(255) NOT NULL,
-#                 email VARCHAR(255) UNIQUE,
-#                 _password VARCHAR(255),
-#             )
-#         """)
-#         conn.commit()
-
-#         # Check if the email or username already exists
-#         cursor.execute("SELECT * FROM user WHERE email = %s OR username = %s", (email, username))
-#         existing_user = cursor.fetchone()
-#         if existing_user:
-#             return jsonify({'error': 'Username or Email already exists'}), 400
-
-#         # Insert user into the database (don't include UserID, it will auto-increment)
-#         cursor.execute(
-#             "INSERT INTO user (user_id, username, email, _password) VALUES (%s, %s, %s, %s)",
-#             (username, email, hashed_password, role)
-#         )
-#         conn.commit()
 @app.route('/signup', methods=['POST'])
 def signup():
     try:
@@ -170,8 +136,82 @@ def signup():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/login', methods=['POST'])
+def login():
+    try:
+        # Extract data from request
+        email = request.json['email']
+        password = request.json['password']
+        
+        # Establish database connection
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Query to find user by username
+        cursor.execute("SELECT user_id, email, _password FROM user WHERE email = %s", (email,))
+        user = cursor.fetchone()
+
+        # If user not found
+        if user is None:
+            return jsonify({'error': 'Invalid username or password'}), 401
+
+        # Compare the entered password with the stored hashed password
+        stored_hashed_password = user[2]
+        if not check_password_hash(stored_hashed_password, password):
+            return jsonify({'error': 'Invalid username or password'}), 401
+
+        # Return success message with user details (you can also generate a token for auth)
+        return jsonify({'message': 'Login successful', 'user_id': user[0], 'username': user[1]}), 200
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({'error': str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
 
 
+@app.route('/forgot-password', methods=['POST'])
+def forgot_password():
+    try:
+        # Get the email from the request
+        email = request.json['email']
+
+        # Check if the email exists in your database
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM user WHERE email = %s", (email,))
+        user = cursor.fetchone()
+
+        if user:
+            # If user exists, send a reset email
+            sender_email = "spendezzzz@gmail.com"
+            receiver_email = email
+            password = "spendEz@24"  # Use an app-specific password or environment variable for security
+
+            # Set up the MIME
+            message = MIMEMultipart()
+            message["From"] = sender_email
+            message["To"] = receiver_email
+            message["Subject"] = "Reset your SPENDEZ password"
+
+            body = "Click here to reset your password: http://10.0.2.2:5000/reset-password"
+            message.attach(MIMEText(body, "plain"))
+
+            # Send email
+            server = smtplib.SMTP('smtp.gmail.com', 587)
+            server.starttls()
+            server.login(sender_email, password)
+            server.sendmail(sender_email, receiver_email, message.as_string())
+            server.quit()
+
+            return jsonify({"message": "Password reset email sent!"}), 200
+        else:
+            return jsonify({"error": "Email not found!"}), 404
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"error": str(e)}), 500      
 
 # Example API endpoint to fetch data from the database
 @app.route('/transactions', methods=['GET'])
