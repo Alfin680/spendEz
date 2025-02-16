@@ -10,9 +10,6 @@ class Signup extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: SignUpScreen(),
-      routes: {
-        '/home': (context) => HomeScr(),
-      },
     );
   }
 }
@@ -38,13 +35,25 @@ class _SignUpScreenState extends State<SignUpScreen> {
   };
 
   Future<void> _signUp() async {
+    String password = _passwordController.text;
+    String email = _emailController.text;
+
+    final RegExp emailRegex =
+        RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
+    final RegExp passwordRegex = RegExp(r"^(?=.*[A-Z])(?=.*\d).{8,}$");
+
     setState(() {
       _errorMessages = {
         'username':
             _usernameController.text.isEmpty ? 'Name is required' : null,
-        'email': _emailController.text.isEmpty ? 'Email is required' : null,
-        'password':
-            _passwordController.text.isEmpty ? 'Password is required' : null,
+        'email': email.isEmpty
+            ? 'Email is required'
+            : (!emailRegex.hasMatch(email) ? 'Invalid email format' : null),
+        'password': password.isEmpty
+            ? 'Password is required'
+            : (!passwordRegex.hasMatch(password)
+                ? 'Password must be at least 8 characters, include an uppercase letter and a digit'
+                : null),
         'confirmPassword': _confirmPasswordController.text.isEmpty
             ? 'Confirm Password is required'
             : (_passwordController.text != _confirmPasswordController.text
@@ -58,11 +67,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
 
     final String url = 'http://10.0.2.2:5000/signup';
-
     final Map<String, String> signUpData = {
       'username': _usernameController.text,
-      'email': _emailController.text,
-      'password': _passwordController.text,
+      'email': email,
+      'password': password,
     };
 
     try {
@@ -73,10 +81,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
       );
 
       if (response.statusCode == 201) {
-        // Show success SnackBar at the top of the screen
+        final responseData = json.decode(response.body);
+        final int userId =
+            int.tryParse(responseData['user_id'].toString()) ?? 0;
+
+        // Show success SnackBar
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Sign up successful!'),
+            content: Text('Sign up successful! Redirecting...'),
             backgroundColor: Color.fromARGB(255, 156, 96, 221),
             behavior: SnackBarBehavior.floating,
             margin: EdgeInsets.only(top: 50, left: 50, right: 50),
@@ -86,48 +98,41 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ),
         );
 
-        // Navigate to home page after success
+        // Navigate to home page with userId
         Future.delayed(Duration(seconds: 2), () {
-          Navigator.pushReplacementNamed(context, '/home');
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => HomeScr(userId: userId), // Pass user_id
+            ),
+          );
         });
       } else {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text('Error'),
-              content: Text('Sign-up failed: ${response.body}'),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: Text('OK'),
-                ),
-              ],
-            );
-          },
-        );
+        _showErrorDialog('Sign-up failed: ${response.body}');
       }
     } catch (e) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('Error'),
-            content: Text('An error occurred: $e'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: Text('OK'),
-              ),
-            ],
-          );
-        },
-      );
+      _showErrorDialog('An error occurred: $e');
     }
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Error'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -250,69 +255,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
     required String hintText,
     String? errorMessage,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 16,
-            color: const Color.fromARGB(221, 0, 0, 0),
-          ),
-        ),
-        if (errorMessage != null)
-          Padding(
-            padding: const EdgeInsets.only(top: 5),
-            child: Text(
-              errorMessage,
-              style: TextStyle(color: Colors.red, fontSize: 14),
-            ),
-          ),
-        SizedBox(height: 5),
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: const Color.fromARGB(255, 0, 0, 0).withOpacity(0.1),
-                blurRadius: 6,
-                offset: Offset(0, 4),
-              ),
-            ],
-          ),
-          child: TextField(
-            controller: controller,
-            obscureText: !_isPasswordVisible,
-            decoration: InputDecoration(
-              hintText: hintText,
-              hintStyle: TextStyle(color: const Color.fromARGB(255, 0, 0, 0)),
-              filled: true,
-              fillColor: Colors.white,
-              contentPadding:
-                  EdgeInsets.symmetric(vertical: 15, horizontal: 15),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(24),
-                borderSide: BorderSide(color: Color(0xFFAAA1A1)),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(24),
-                borderSide: BorderSide(color: Color(0xFFAAA1A1), width: 1.5),
-              ),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
-                  color: const Color.fromARGB(255, 0, 0, 0),
-                ),
-                onPressed: () {
-                  setState(() {
-                    _isPasswordVisible = !_isPasswordVisible;
-                  });
-                },
-              ),
-            ),
-          ),
-        ),
-      ],
+    return buildTextField(
+      controller: controller,
+      label: label,
+      hintText: hintText,
+      errorMessage: errorMessage,
     );
   }
 }

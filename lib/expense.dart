@@ -11,21 +11,11 @@ import 'category_shopping.dart';
 import 'category_fun.dart';
 import 'category_other.dart';
 
-class CategoryExpenseApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Category Expense',
-      theme: ThemeData(
-        primarySwatch: Colors.purple,
-      ),
-      home: CategoryExpenseScreen(),
-    );
-  }
-}
-
 class CategoryExpenseScreen extends StatefulWidget {
+  final int userId; // Add userId parameter
+
+  CategoryExpenseScreen({required this.userId});
+
   @override
   _CategoryExpenseScreenState createState() => _CategoryExpenseScreenState();
 }
@@ -39,30 +29,36 @@ class _CategoryExpenseScreenState extends State<CategoryExpenseScreen> {
       _selectedIndex = index;
     });
 
+    final userId = widget.userId; // Get userId from widget
+
     // Navigate to respective pages
     switch (index) {
       case 0: // Home
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => HomeScr()),
+          MaterialPageRoute(
+              builder: (context) => HomeScr(userId: userId)), // Pass userId
         );
         break;
       case 1: // Expense
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => CategoryExpenseApp()),
+          MaterialPageRoute(
+              builder: (context) => CategoryExpenseScreen(userId: userId)),
         );
         break;
       case 2: // Insights
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => InsightsPage()),
+          MaterialPageRoute(
+              builder: (context) => InsightsPage(userId: widget.userId)),
         );
         break;
       case 3: // Tips
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => Tips()),
+          MaterialPageRoute(
+              builder: (context) => TipsScreen(userId: widget.userId)),
         );
         break;
     }
@@ -70,16 +66,36 @@ class _CategoryExpenseScreenState extends State<CategoryExpenseScreen> {
 
   // List of categories and their icons with target pages
   final List<Map<String, dynamic>> categories = [
-    {"name": "Food", "icon": "assets/icons/Efood.png", "page": Food()},
-    {"name": "Travel", "icon": "assets/icons/Etravel.png", "page": Travel()},
-    {"name": "Bills", "icon": "assets/icons/Ebills.png", "page": Bill()},
+    {
+      "name": "Food",
+      "icon": "assets/icons/Efood.png",
+      "page": (int userId) => Food(userId: userId),
+    },
+    {
+      "name": "Travel",
+      "icon": "assets/icons/Etravel.png",
+      "page": (int userId) => Travel(userId: userId),
+    },
+    {
+      "name": "Bills",
+      "icon": "assets/icons/Ebills.png",
+      "page": (int userId) => Bill(userId: userId),
+    },
     {
       "name": "Shopping",
       "icon": "assets/icons/Eshopping.png",
-      "page": Shopping()
+      "page": (int userId) => Shopping(userId: userId),
     },
-    {"name": "Fun", "icon": "assets/icons/Efun.png", "page": Fun()},
-    {"name": "Other", "icon": "assets/icons/Eother.png", "page": Other()},
+    {
+      "name": "Fun",
+      "icon": "assets/icons/Efun.png",
+      "page": (int userId) => Fun(userId: userId),
+    },
+    {
+      "name": "Other",
+      "icon": "assets/icons/Eother.png",
+      "page": (int userId) => Other(userId: userId),
+    },
   ];
 
   @override
@@ -122,11 +138,12 @@ class _CategoryExpenseScreenState extends State<CategoryExpenseScreen> {
                     name: category['name']!,
                     iconPath: category['icon']!,
                     onTap: () {
-                      // Navigate to the respective category page
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => category['page']),
+                          builder: (context) => category['page'](
+                              widget.userId), // ✅ Pass userId correctly
+                        ),
                       );
                     },
                   );

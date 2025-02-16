@@ -1,4 +1,4 @@
-  import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:spendez_main/home.dart';
 import 'package:spendez_main/login.dart';
 import 'package:spendez_main/signup.dart';
@@ -24,7 +24,18 @@ class SpendEz extends StatelessWidget {
         '/onboard': (context) => LoginSelectionPage(),
         '/login': (context) => LoginPage(),
         '/signup': (context) => SignUpScreen(),
-        '/home': (context) => HomeScr(),
+      },
+      onGenerateRoute: (settings) {
+        if (settings.name == '/home') {
+          final args = settings.arguments as Map<String, dynamic>?;
+
+          if (args != null && args.containsKey('user_id')) {
+            return MaterialPageRoute(
+              builder: (context) => HomeScr(userId: args['user_id']),
+            );
+          }
+        }
+        return null;
       },
     );
   }

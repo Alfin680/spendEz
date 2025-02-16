@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import 'package:spendez_main/resetPass.dart';
+import 'package:spendez_main/home.dart'; // Import your home page
 
 class LoginPage extends StatefulWidget {
   @override
@@ -29,8 +30,7 @@ class _LoginPageState extends State<LoginPage> {
     // API request
     try {
       final response = await http.post(
-        Uri.parse(
-            'http://10.0.2.2:5000/login'), // Replace with your backend URL
+        Uri.parse('http://10.0.2.2:5000/login'), // Replace with your backend URL
         headers: {"Content-Type": "application/json"},
         body: json.encode({
           'email': _emailController.text,
@@ -39,8 +39,17 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       if (response.statusCode == 200) {
-        // If login is successful, navigate to the home page
-        Navigator.pushNamed(context, '/home');
+        // Parse the response body
+        final responseData = json.decode(response.body);
+        final int userId = responseData['user_id']; // Extract user_id from the response
+
+        // Navigate to the home page with user_id
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomeScr(userId: userId), // Pass user_id to HomePage
+          ),
+        );
       } else {
         // If login fails, show error message
         setState(() {
