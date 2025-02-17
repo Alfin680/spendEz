@@ -103,7 +103,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => HomeScr(userId: userId), // Pass user_id
+              builder: (context) =>
+                  HomeScr(userId: responseData['user_id']), // Pass user_id
             ),
           );
         });

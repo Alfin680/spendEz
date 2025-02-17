@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from datetime import datetime, timedelta
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 import mysql.connector
@@ -61,6 +62,37 @@ def home():
     return "Flask Backend is running"
 
 # ✅ User Signup
+# @app.route('/signup', methods=['POST'])
+# def signup():
+#     try:
+#         username = request.json['username']
+#         email = request.json['email']
+#         password = request.json['password']
+
+#         hashed_password = generate_password_hash(password)
+#         conn = get_db_connection()
+#         cursor = conn.cursor()
+
+#         # Check if the email already exists
+#         cursor.execute("SELECT * FROM user WHERE email = %s", (email,))
+#         if cursor.fetchone():
+#             return jsonify({"error": "Email already exists!"}), 400
+
+#         # Insert the new user
+#         cursor.execute("INSERT INTO user (username, email, _password) VALUES (%s, %s, %s)", 
+#                        (username, email, hashed_password))
+#         conn.commit()
+
+#         user_id = cursor.lastrowid  # Get the last inserted user ID
+#         formatted_user_id = f'U{str(user_id).zfill(4)}'
+
+#         cursor.close()
+#         conn.close()
+
+#         return jsonify({"message": "User signed up successfully!", "user_id": formatted_user_id, "username": username}), 201
+
+#     except Exception as e:
+#         return jsonify({"error": str(e)}), 500
 @app.route('/signup', methods=['POST'])
 def signup():
     try:
@@ -83,16 +115,14 @@ def signup():
         conn.commit()
 
         user_id = cursor.lastrowid  # Get the last inserted user ID
-        formatted_user_id = f'U{str(user_id).zfill(4)}'
 
         cursor.close()
         conn.close()
 
-        return jsonify({"message": "User signed up successfully!", "user_id": formatted_user_id, "username": username}), 201
+        return jsonify({"message": "User signed up successfully!", "user_id": user_id, "username": username}), 201
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -217,6 +247,67 @@ def get_transactions(user_id):
     finally:
         if cursor: cursor.close()
         if conn: conn.close()
+
+@app.route('/insights/<int:user_id>', methods=['GET'])
+def get_insights(user_id):
+    duration = request.args.get('duration', 'Month')
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)  # ✅ Fetch results as a dictionary
+
+    today = datetime.today()
+
+    if duration == "Week":
+        start_date = today - timedelta(days=today.weekday())  # ✅ Get the last Sunday
+    elif duration == "Month":
+        start_date = today.replace(day=1)  # ✅ Get 1st of the month
+    elif duration == "Year":
+        start_date = today.replace(month=1, day=1)  # ✅ Get January 1st
+    else:
+        return jsonify({"error": "Invalid duration"}), 400
+
+    # ✅ Corrected Query (Removed JOIN on non-existent category table)
+    query = """
+    SELECT e.category, SUM(e.amount) as total_amount
+    FROM transactions e
+    WHERE e.user_id = %s AND e.date_time >= %s
+    GROUP BY e.category
+    """
+
+    cursor.execute(query, (user_id, start_date))
+    results = cursor.fetchall()
+
+    # ✅ Calculate Total Spent
+    total_spent = sum(item['total_amount'] for item in results)
+
+    # ✅ Define Category Colors
+    category_colors = {
+        "Food": "#FFA500",    # Orange
+        "Travel": "#008000",  # Green
+        "Bills": "#FF0000",   # Red
+        "Fun": "#0000FF",     # Blue
+        "Others": "#800080"   # Purple
+    }
+
+    # ✅ Format Response
+    categories = [
+        {
+            "name": item['category'],
+            "color": category_colors.get(item['category'], "#808080"),  # Default Gray
+            "amount": f"₹{item['total_amount']:.2f}",
+            "percentage": f"{(item['total_amount'] / total_spent * 100):.1f}%" if total_spent > 0 else "0%"
+        }
+        for item in results
+    ]
+
+    cursor.close()
+    conn.close()
+
+    return jsonify({
+        "total_spent": total_spent,
+        "categories": categories
+    })
+
 
 @app.route('/tips', methods=['GET'])
 def get_finance_tips():
