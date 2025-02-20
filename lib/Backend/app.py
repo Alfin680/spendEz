@@ -253,20 +253,23 @@ def get_insights(user_id):
     duration = request.args.get('duration', 'Month')
 
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)  # ✅ Fetch results as a dictionary
+    cursor = conn.cursor(dictionary=True)
 
     today = datetime.today()
 
     if duration == "Week":
-        start_date = today - timedelta(days=today.weekday())  # ✅ Get the last Sunday
+        start_date = today - timedelta(days=today.weekday())  # Get last Sunday
     elif duration == "Month":
-        start_date = today.replace(day=1)  # ✅ Get 1st of the month
+        start_date = today.replace(day=1)  # Get 1st of the month
     elif duration == "Year":
-        start_date = today.replace(month=1, day=1)  # ✅ Get January 1st
+        start_date = today.replace(month=1, day=1)  # Get January 1st
     else:
         return jsonify({"error": "Invalid duration"}), 400
 
-    # ✅ Corrected Query (Removed JOIN on non-existent category table)
+    # ✅ Convert to SQL-compatible datetime format
+    start_date = start_date.strftime('%Y-%m-%d %H:%M:%S')
+
+    # ✅ Fetch transactions only from the selected duration
     query = """
     SELECT e.category, SUM(e.amount) as total_amount
     FROM transactions e
@@ -277,37 +280,40 @@ def get_insights(user_id):
     cursor.execute(query, (user_id, start_date))
     results = cursor.fetchall()
 
-    # ✅ Calculate Total Spent
-    total_spent = sum(item['total_amount'] for item in results)
-
-    # ✅ Define Category Colors
-    category_colors = {
-        "Food": "#FFA500",    # Orange
-        "Travel": "#008000",  # Green
-        "Bills": "#FF0000",   # Red
-        "Fun": "#0000FF",     # Blue
-        "Others": "#800080"   # Purple
-    }
-
-    # ✅ Format Response
-    categories = [
-        {
-            "name": item['category'],
-            "color": category_colors.get(item['category'], "#808080"),  # Default Gray
-            "amount": f"₹{item['total_amount']:.2f}",
-            "percentage": f"{(item['total_amount'] / total_spent * 100):.1f}%" if total_spent > 0 else "0%"
-        }
-        for item in results
-    ]
-
     cursor.close()
     conn.close()
+
+    # ✅ Define Default Categories & Colors
+    category_colors = {
+        "Food": "#FFA500",
+        "Travel": "#008000",
+        "Bills": "#FF0000",
+        "Fun": "#0000FF",
+        "Others": "#800080",
+        "Shopping": "#FF69B4"  # Add any other fixed categories
+    }
+
+    # ✅ Convert results to a dictionary for easy lookup
+    result_dict = {item['category']: item['total_amount'] for item in results}
+
+    # ✅ Calculate Total Spent
+    total_spent = sum(result_dict.values())
+
+    # ✅ Ensure all categories are included, even if 0
+    categories = [
+        {
+            "name": category,
+            "color": category_colors.get(category, "#808080"),  # Default Gray
+            "amount": f"₹{result_dict.get(category, 0):.2f}",
+            "percentage": f"{(result_dict.get(category, 0) / total_spent * 100):.1f}%" if total_spent > 0 else "0%"
+        }
+        for category in category_colors.keys()
+    ]
 
     return jsonify({
         "total_spent": total_spent,
         "categories": categories
     })
-
 
 @app.route('/tips', methods=['GET'])
 def get_finance_tips():
