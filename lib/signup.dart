@@ -66,7 +66,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       return; // Stop if there are validation errors
     }
 
-    final String url = 'http://10.0.2.2:5000/signup';
+    final String url = 'http://127.0.0.1:5000/signup';
     final Map<String, String> signUpData = {
       'username': _usernameController.text,
       'email': email,

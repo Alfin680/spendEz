@@ -302,7 +302,7 @@ class _TipsScreenState extends State<TipsScreen> {
 
   Future<void> _fetchRandomTips() async {
     try {
-      final response = await http.get(Uri.parse('http://10.0.2.2:5000/tips'));
+      final response = await http.get(Uri.parse('http://127.0.0.1:5000/tips'));
 
       if (response.statusCode == 200) {
         List<dynamic> data = json.decode(response.body);

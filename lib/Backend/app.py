@@ -15,7 +15,7 @@ def get_db_connection():
     conn = mysql.connector.connect(
         host='localhost',
         user='root',
-        password='Alfin@2022',  
+        password='njn@2003',  
         database='finance_db'  
     )
     return conn
@@ -325,6 +325,37 @@ def get_finance_tips():
     conn.close()
 
     return jsonify([{"id": tip[0], "tip": tip[1]} for tip in tips])
+
+@app.route('/category-total', methods=['GET'])
+def get_category_total():
+    try:
+        user_id = request.args.get('user_id', type=int)
+        category = request.args.get('category', type=str)
+
+        if not user_id or not category:
+            return jsonify({"error": "Missing user_id or category"}), 400
+
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        query = """
+        SELECT SUM(amount) AS total_spent
+        FROM transactions
+        WHERE user_id = %s AND category = %s
+        """
+        cursor.execute(query, (user_id, category))
+        result = cursor.fetchone()
+
+        total_spent = result['total_spent'] if result['total_spent'] else 0
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({"total_spent": total_spent})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
         
 if __name__ == '__main__':
     app.run(debug=True)

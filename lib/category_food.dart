@@ -216,6 +216,8 @@
 //     );
 //   }
 // }
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:spendez_main/expense.dart';
@@ -247,54 +249,81 @@ class FoodScreen extends StatefulWidget {
 }
 
 class _FoodScreenState extends State<FoodScreen> {
-  double _budgetAllocation = 1000;
-  double _totalBudget = 1000;
-  double _budgetSpent = 650;
-  double _budgetLeft = 350;
+  double _budgetAllocation = 0;
+  double _totalBudget = 0;
+  double _budgetSpent = 0;
+  double _budgetLeft = 0;
+  String _statusMessage = "Nice!";
   bool _isBudgetExceeded = false;
   TextEditingController _budgetController = TextEditingController();
+  List<double> _spendings = [];
+  List<String> _labels = [];
 
   @override
   void initState() {
     super.initState();
-    _budgetController.text = _totalBudget.toString();
-    _updateBudgetStatus();
+    _fetchBudgetDetails();
     _fetchFoodCategorySpendings();
   }
 
+  void _fetchBudgetDetails() async {
+    final String apiUrl =
+        "http://your-api-url/budget-details?user_id=${widget.userId}";
+
+    try {
+      final response = await http.get(Uri.parse(apiUrl));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        double totalBudget = data["total_budget"].toDouble();
+        double spent = data["total_spent"]
+            .toDouble(); // Get actual spent from transactions
+
+        setState(() {
+          _totalBudget = totalBudget; // ✅ Update Total Budget Circle
+          _budgetSpent = spent; // ✅ Update Budget Spent Circle
+          _budgetLeft =
+              _totalBudget - _budgetSpent; // ✅ Update Budget Left Circle
+          _isBudgetExceeded = _budgetLeft < 0;
+          _budgetController.text = _totalBudget.toString();
+
+          // Update status message
+          _statusMessage = _isBudgetExceeded
+              ? "Alert! You're over budget!"
+              : "Nice! Great job! You're staying within your budget";
+        });
+      } else {
+        throw Exception("Failed to load budget details");
+      }
+    } catch (error) {
+      print("Error fetching budget details: $error");
+    }
+  }
+
   void _fetchFoodCategorySpendings() async {
-    // Simulate fetching food-related spendings from backend
-    List<double> fetchedValues = [
-      400,
-      300,
-      250,
-      350,
-      500,
-      450,
-      300,
-      200
-    ]; // Replace with API call
-    setState(() {
-      _budgetSpent = fetchedValues.reduce((a, b) => a + b) /
-          fetchedValues.length; // Example: average spent
-      _updateBudgetStatus();
-    });
-  }
+    final String apiUrl =
+        "http://your-api-url/food-expense-history?user_id=${widget.userId}";
 
-  void _updateBudgetStatus() {
-    setState(() {
-      _budgetLeft = _totalBudget - _budgetSpent;
-      _isBudgetExceeded = _budgetLeft < 0;
-    });
-  }
+    try {
+      final response = await http.get(Uri.parse(apiUrl));
 
-  void _onBudgetAllocationChanged(double value) {
-    setState(() {
-      _budgetAllocation = value;
-      _totalBudget = value;
-      _budgetController.text = value.toString();
-      _updateBudgetStatus();
-    });
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        List<double> fetchedValues = List<double>.from(data["expenses"]);
+        List<String> fetchedLabels = List<String>.from(data["dates"]);
+
+        setState(() {
+          _spendings = fetchedValues;
+          _labels = fetchedLabels;
+        });
+      } else {
+        throw Exception("Failed to load food category spendings");
+      }
+    } catch (error) {
+      print("Error fetching food category spendings: $error");
+    }
   }
 
   void _onBudgetEntered(String value) {
@@ -302,10 +331,28 @@ class _FoodScreenState extends State<FoodScreen> {
     if (enteredBudget != null) {
       setState(() {
         _totalBudget = enteredBudget;
-        _budgetAllocation = enteredBudget;
         _updateBudgetStatus();
       });
     }
+  }
+
+  // void _updateBudgetStatus() {
+  //   setState(() {
+  //     _budgetLeft = _totalBudget - _budgetSpent;
+  //     _isBudgetExceeded = _budgetLeft < 0;
+  //   });
+  // }
+  void _updateBudgetStatus() {
+    setState(() {
+      _budgetLeft = _totalBudget - _budgetSpent;
+      _isBudgetExceeded = _budgetLeft < 0;
+
+      if (_isBudgetExceeded) {
+        _statusMessage = "Alert! You're over budget!";
+      } else {
+        _statusMessage = "Nice! Great job! You're staying within your budget";
+      }
+    });
   }
 
   @override
@@ -359,24 +406,33 @@ class _FoodScreenState extends State<FoodScreen> {
     return Container(
       padding: EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: const Color.fromARGB(255, 185, 33, 49),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 8)],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "Spendings",
-            style: TextStyle(
-                fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
-          ),
+          Text("Spendings",
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black)),
           SizedBox(height: 8),
           SizedBox(
             height: 150,
             child: BarChart(
               BarChartData(
-                barGroups: _getBarGroups(),
+                barGroups: List.generate(
+                    _spendings.length,
+                    (index) => BarChartGroupData(x: index, barRods: [
+                          BarChartRodData(
+                            toY: _spendings[index],
+                            color: Color(0xFF7F07FF),
+                            width: 14,
+                            borderRadius: BorderRadius.circular(6),
+                          )
+                        ])),
                 borderData: FlBorderData(show: false),
                 gridData: FlGridData(show: false),
                 titlesData: FlTitlesData(
@@ -386,17 +442,7 @@ class _FoodScreenState extends State<FoodScreen> {
                     sideTitles: SideTitles(
                       showTitles: true,
                       getTitlesWidget: (value, meta) {
-                        List<String> labels = [
-                          "AUG 12",
-                          "AUG 13",
-                          "AUG 14",
-                          "AUG 15",
-                          "AUG 16",
-                          "AUG 17",
-                          "AUG 18",
-                          "AUG 19"
-                        ];
-                        return Text(labels[value.toInt()],
+                        return Text(_labels[value.toInt()],
                             style: TextStyle(fontSize: 10));
                       },
                       reservedSize: 24,
@@ -411,68 +457,57 @@ class _FoodScreenState extends State<FoodScreen> {
     );
   }
 
-  List<BarChartGroupData> _getBarGroups() {
-    List<double> values = [
-      400,
-      300,
-      250,
-      350,
-      500,
-      450,
-      300,
-      200
-    ]; // Food category data
-    return List.generate(
-      values.length,
-      (index) => BarChartGroupData(x: index, barRods: [
-        BarChartRodData(
-            toY: values[index],
-            color: Colors.purple,
-            width: 14,
-            borderRadius: BorderRadius.circular(6)),
-      ]),
+  Widget _buildBudgetAllocation() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text("Budget Allocation",
+            style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.black)),
+        TextField(
+          controller: _budgetController,
+          keyboardType: TextInputType.number,
+          textAlign: TextAlign.center,
+          onSubmitted: _onBudgetEntered,
+          decoration: InputDecoration(
+              border: OutlineInputBorder(), contentPadding: EdgeInsets.all(8)),
+        ),
+      ],
     );
   }
 
-  Widget _buildBudgetAllocation() {
-    return Row(
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Budget Allocation",
-                  style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black)),
-              Slider(
-                value: _budgetAllocation,
-                min: 100,
-                max: 1000,
-                divisions: 9,
-                activeColor: Colors.black,
-                inactiveColor: Colors.black26,
-                onChanged: _onBudgetAllocationChanged,
-              ),
-            ],
+  Widget _buildFinanceTipsButton() {
+    return Center(
+      child: GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => TipsScreen(userId: widget.userId)),
+          );
+        },
+        child: Container(
+          padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF7F07FF), Color(0xFF4C0499)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(30),
           ),
-        ),
-        SizedBox(width: 10),
-        Container(
-          width: 80,
-          child: TextField(
-            controller: _budgetController,
-            keyboardType: TextInputType.number,
-            textAlign: TextAlign.center,
-            onSubmitted: _onBudgetEntered,
-            decoration: InputDecoration(
-              border: OutlineInputBorder(),
-              contentPadding: EdgeInsets.all(8),
+          child: Text(
+            "Get Finance Tips",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ),
-      ],
+      ),
     );
   }
 
@@ -487,42 +522,21 @@ class _FoodScreenState extends State<FoodScreen> {
       ),
       child: Row(
         children: [
-          Icon(_isBudgetExceeded ? Icons.warning : Icons.check_circle,
-              color: _isBudgetExceeded ? Colors.red : Colors.green),
+          Icon(
+            _isBudgetExceeded ? Icons.warning : Icons.check_circle,
+            color: _isBudgetExceeded ? Colors.red : Colors.green,
+          ),
           SizedBox(width: 8),
           Expanded(
             child: Text(
-              _isBudgetExceeded
-                  ? "Alert! You're over budget!"
-                  : "Nice! Great job! You're staying within your budget",
+              _statusMessage,
               style: TextStyle(
-                  color: _isBudgetExceeded ? Colors.red : Colors.black,
-                  fontWeight: FontWeight.bold),
+                color: _isBudgetExceeded ? Colors.red : Colors.black,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildFinanceTipsButton() {
-    return Center(
-      child: ElevatedButton(
-        onPressed: () {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => TipsScreen(userId: widget.userId)));
-        },
-        style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.purple,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30))),
-        child: Text("Get Finance Tips",
-            style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 16)),
       ),
     );
   }

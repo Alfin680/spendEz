@@ -659,7 +659,7 @@ class _InsightsPageState extends State<InsightsPage> {
     });
 
     final url = Uri.parse(
-        "http://10.0.2.2:5000/insights/${widget.userId}?duration=$duration");
+        "http://127.0.0.1:5000/insights/${widget.userId}?duration=$duration");
 
     try {
       final response = await http.get(url);
