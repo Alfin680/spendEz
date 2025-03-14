@@ -223,6 +223,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:spendez_main/expense.dart';
 import 'package:spendez_main/tips.dart';
 
+
 class Food extends StatelessWidget {
   final int userId;
   const Food({required this.userId});
@@ -267,39 +268,54 @@ class _FoodScreenState extends State<FoodScreen> {
   }
 
   void _fetchBudgetDetails() async {
-    final String apiUrl =
-        "http://your-api-url/budget-details?user_id=${widget.userId}";
+  final String apiUrl =
+      "http://your-api-url/budget-details?user_id=${widget.userId}";
 
-    try {
-      final response = await http.get(Uri.parse(apiUrl));
+  final String foodExpenseApiUrl =
+      "http://your-api-url/food-expense-sum?user_id=${widget.userId}";
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
+  try {
+    // Fetching total budget
+    final response = await http.get(Uri.parse(apiUrl));
 
-        double totalBudget = data["total_budget"].toDouble();
-        double spent = data["total_spent"]
-            .toDouble(); // Get actual spent from transactions
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
 
-        setState(() {
-          _totalBudget = totalBudget; // ✅ Update Total Budget Circle
-          _budgetSpent = spent; // ✅ Update Budget Spent Circle
-          _budgetLeft =
-              _totalBudget - _budgetSpent; // ✅ Update Budget Left Circle
-          _isBudgetExceeded = _budgetLeft < 0;
-          _budgetController.text = _totalBudget.toString();
-
-          // Update status message
-          _statusMessage = _isBudgetExceeded
-              ? "Alert! You're over budget!"
-              : "Nice! Great job! You're staying within your budget";
-        });
-      } else {
-        throw Exception("Failed to load budget details");
-      }
-    } catch (error) {
-      print("Error fetching budget details: $error");
+      double totalBudget = data["total_budget"].toDouble();
+      
+      setState(() {
+        _totalBudget = totalBudget;
+        _budgetController.text = _totalBudget.toString();
+      });
+    } else {
+      throw Exception("Failed to load budget details");
     }
+
+    // Fetching total spent on food for the last month
+    final foodResponse = await http.get(Uri.parse(foodExpenseApiUrl));
+
+    if (foodResponse.statusCode == 200) {
+      final foodData = jsonDecode(foodResponse.body);
+
+      double spent = foodData["total_spent"].toDouble();
+
+      setState(() {
+        _budgetSpent = spent; // ✅ Update Budget Spent Circle
+        _budgetLeft = _totalBudget - _budgetSpent; // ✅ Update Budget Left Circle
+        _isBudgetExceeded = _budgetLeft < 0;
+
+        _statusMessage = _isBudgetExceeded
+            ? "Alert! You're over budget!"
+            : "Nice! Great job! You're staying within your budget";
+      });
+    } else {
+      throw Exception("Failed to load food category expenses");
+    }
+  } catch (error) {
+    print("Error fetching budget details: $error");
   }
+}
+
 
   void _fetchFoodCategorySpendings() async {
     final String apiUrl =
@@ -406,7 +422,7 @@ class _FoodScreenState extends State<FoodScreen> {
     return Container(
       padding: EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 185, 33, 49),
+        color: const Color.fromARGB(255, 236, 228, 229),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 8)],
       ),
@@ -595,4 +611,5 @@ class _FoodScreenState extends State<FoodScreen> {
       ],
     );
   }
-}
+} 
+

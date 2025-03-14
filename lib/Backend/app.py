@@ -355,6 +355,128 @@ def get_category_total():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@app.route('/food-spendings/<int:user_id>', methods=['GET'])
+def get_food_spendings(user_id):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        # Fetch food expenses for the last 7 days
+        query = """
+        SELECT DATE(date_time) as date, SUM(amount) as total_amount
+        FROM transactions
+        WHERE user_id = %s AND category = 'Food' AND date_time >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+        GROUP BY DATE(date_time)
+        ORDER BY DATE(date_time)
+        """
+        cursor.execute(query, (user_id,))
+        results = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+
+        # Format results for the frontend
+        spendings = {result['date']: result['total_amount'] for result in results}
+        return jsonify(spendings), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+
+@app.route('/budget-insights/<int:user_id>', methods=['GET'])
+def get_budget_insights(user_id):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        # Fetch total budget (assuming it's stored in a budget table)
+        cursor.execute("SELECT total_budget FROM budget WHERE user_id = %s", (user_id,))
+        budget_result = cursor.fetchone()
+        total_budget = budget_result['total_budget'] if budget_result else 0
+
+        # Fetch total spent on food for the last 30 days
+        query = """
+        SELECT SUM(amount) as total_spent
+        FROM transactions
+        WHERE user_id = %s AND category = 'Food' AND date_time >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+        """
+        cursor.execute(query, (user_id,))
+        spent_result = cursor.fetchone()
+        total_spent = spent_result['total_spent'] if spent_result['total_spent'] else 0
+
+        # Calculate budget left
+        budget_left = total_budget - total_spent
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({
+            "total_budget": total_budget,
+            "total_spent": total_spent,
+            "budget_left": budget_left
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route("/food-expense-history", methods=["GET"])
+def get_food_expenses():
+    user_id = request.args.get("user_id")
+
+    if not user_id:
+        return jsonify({"error": "User ID is required"}), 400
+
+    try:
+        # Get the first day of last month
+        today = datetime.date.today()
+        first_day_last_month = (today.replace(day=1) - datetime.timedelta(days=1)).replace(day=1)
+        last_day_last_month = today.replace(day=1) - datetime.timedelta(days=1)
+
+        cur = mysql.connection.cursor()
+        
+        # Fetch total amount spent on Food category in last month
+        query = """
+            SELECT COALESCE(SUM(amount), 0) 
+            FROM transactions 
+            WHERE user_id = %s 
+            AND category = 'Food' 
+            AND date BETWEEN %s AND %s
+        """
+        
+        cur.execute(query, (user_id, first_day_last_month, last_day_last_month))
+        total_spent = cur.fetchone()[0]
+
+        # Fetch daily food expenses for the last month
+        query = """
+            SELECT DATE(date) AS expense_date, SUM(amount) 
+            FROM transactions 
+            WHERE user_id = %s 
+            AND category = 'Food' 
+            AND date BETWEEN %s AND %s 
+            GROUP BY DATE(date) 
+            ORDER BY expense_date
+        """
+        cur.execute(query, (user_id, first_day_last_month, last_day_last_month))
+        expense_data = cur.fetchall()
+        
+        cur.close()
+
+        # Format response
+        dates = [str(row[0]) for row in expense_data]
+        expenses = [float(row[1]) for row in expense_data]
+
+        return jsonify({
+            "total_spent": float(total_spent),
+            "dates": dates,
+            "expenses": expenses
+        })
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+
 
         
 if __name__ == '__main__':
