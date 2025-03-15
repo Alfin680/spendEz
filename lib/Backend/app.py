@@ -6,6 +6,8 @@ import mysql.connector
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from flask import Flask, jsonify, request
+from predictor import predict_expense
 
 app = Flask(__name__)
 CORS(app)
@@ -477,6 +479,20 @@ def get_food_expenses():
 
 
 
+@app.route('/predict_expense', methods=['GET'])
+def get_expense_prediction():
+    user_id = request.args.get('user_id', type=int)  # Get the user_id from the query parameter
+
+    if not user_id:
+        return jsonify({'error': 'user_id is required'}), 400
+
+    # Call the predict_expense function from predictor.py
+    predicted_amount = predict_expense(user_id)
+
+    if predicted_amount is None:
+        return jsonify({'error': 'Not enough data to predict'}), 400
+
+    return jsonify({'user_id': user_id, 'predicted_next_month_expense': predicted_amount})
 
         
 if __name__ == '__main__':
