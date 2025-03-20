@@ -5,6 +5,7 @@ import 'package:spendez_main/addTransaction.dart';
 import 'package:spendez_main/expense.dart';
 import 'package:spendez_main/overallInsights.dart';
 import 'package:spendez_main/tips.dart';
+import 'package:intl/intl.dart';
 
 class HomeScr extends StatelessWidget {
   final int userId;
@@ -218,7 +219,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 final transaction = snapshot.data![index];
 
                 return TransactionItem(
-                  date: transaction['date_time'].split(" ")[0],
+                  date: transaction['date_time'],
                   name: transaction['expense_name'],
                   category: transaction['category'],
                   amount:
@@ -288,12 +289,27 @@ class TransactionItem extends StatelessWidget {
     required this.amount,
   });
 
+  // String _formatDate(String date) {
+  //   try {
+  //     DateTime parsedDate = DateTime.tryParse(date) ?? DateTime.now();
+  //     return "${parsedDate.day} ${_getMonthAbbreviation(parsedDate.month)}";
+  //   } catch (e) {
+  //     return "Invalid Date";
+  //   }
+  // }
+
   String _formatDate(String date) {
     try {
-      DateTime parsedDate = DateTime.tryParse(date) ?? DateTime.now();
+      // Parse the RFC 1123 formatted date
+      DateTime parsedDate = DateFormat("EEE, dd MMM yyyy HH:mm:ss 'GMT'")
+          .parseUtc(date)
+          .toLocal();
+
+      // Return formatted day and month abbreviation (e.g., "13 Mar")
       return "${parsedDate.day} ${_getMonthAbbreviation(parsedDate.month)}";
     } catch (e) {
-      return "Invalid Date";
+      print("Date parsing error: $e, input: $date");
+      return "Invalid Date"; // Handle errors gracefully
     }
   }
 

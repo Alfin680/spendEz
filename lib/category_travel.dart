@@ -1165,11 +1165,14 @@ class _TravelScreenState extends State<TravelScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildLineChart(),
+            _buildBarChart(),
             SizedBox(height: 16),
             _buildBudgetInput(),
+            SizedBox(height: 20),
             _buildBudgetInsights(),
+            SizedBox(height: 16),
             _buildBudgetStatus(),
+            SizedBox(height: 16),
             _buildFinanceTipsButton(),
           ],
         ),
@@ -1177,50 +1180,60 @@ class _TravelScreenState extends State<TravelScreen> {
     );
   }
 
-  Widget _buildLineChart() {
+  Widget _buildBarChart() {
     return Container(
       height: 200,
-      padding: EdgeInsets.all(16),
+      padding: EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 4,
+            spreadRadius: 2,
+          ),
+        ],
       ),
-      child: LineChart(
-        LineChartData(
-          backgroundColor: Colors.white,
+      child: BarChart(
+        BarChartData(
+          borderData: FlBorderData(show: false),
           gridData: FlGridData(show: false),
           titlesData: FlTitlesData(
             leftTitles: AxisTitles(
-              sideTitles: SideTitles(showTitles: true, reservedSize: 30),
+              sideTitles: SideTitles(showTitles: true, reservedSize: 40),
             ),
             bottomTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
-                getTitlesWidget: (value, meta) {
-                  return Text("${value.toInt()}");
+                getTitlesWidget: (double value, TitleMeta meta) {
+                  List<String> labels = ["Mon", "Tue", "Wed", "Thu", "Fri"];
+                  return SideTitleWidget(
+                    axisSide: meta.axisSide,
+                    child: Text(labels[value.toInt()],
+                        style: TextStyle(fontSize: 12)),
+                  );
                 },
+                reservedSize: 32,
               ),
             ),
           ),
-          borderData: FlBorderData(show: true),
-          lineBarsData: [
-            LineChartBarData(
-              spots: _spendingData,
-              isCurved: true,
-              color: Colors.deepPurple,
-              barWidth: 4,
-              belowBarData: BarAreaData(
-                show: true,
-                gradient: LinearGradient(
-                  colors: [
-                    const Color.fromARGB(255, 119, 13, 189).withOpacity(0.4),
-                    Colors.deepPurple.withOpacity(0.1)
-                  ],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-              ),
-            ),
+          barGroups: [
+            BarChartGroupData(x: 0, barRods: [
+              BarChartRodData(toY: 200, color: Color(0xFF7F07FF), width: 16)
+            ]),
+            BarChartGroupData(x: 1, barRods: [
+              BarChartRodData(toY: 300, color: Color(0xFF7F07FF), width: 16)
+            ]),
+            BarChartGroupData(x: 2, barRods: [
+              BarChartRodData(toY: 150, color: Color(0xFF7F07FF), width: 16)
+            ]),
+            BarChartGroupData(x: 3, barRods: [
+              BarChartRodData(toY: 280, color: Color(0xFF7F07FF), width: 16)
+            ]),
+            BarChartGroupData(x: 4, barRods: [
+              BarChartRodData(toY: 180, color: Color(0xFF7F07FF), width: 16)
+            ]),
           ],
         ),
       ),

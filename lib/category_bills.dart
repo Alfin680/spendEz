@@ -1,3 +1,4 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:spendez_main/expense.dart';
 import 'package:spendez_main/tips.dart';
@@ -75,7 +76,9 @@ class _BillScreenState extends State<BillScreen> {
           onPressed: () {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => CategoryExpenseScreen(userId: widget.userId)),
+              MaterialPageRoute(
+                  builder: (context) =>
+                      CategoryExpenseScreen(userId: widget.userId)),
             );
           },
         ),
@@ -93,8 +96,14 @@ class _BillScreenState extends State<BillScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            _buildBarChart(),
+            SizedBox(height: 16),
+            //_buildBudgetAllocation(),
+            SizedBox(height: 20),
             _buildBudgetInsights(),
+            SizedBox(height: 16),
             _buildBudgetStatus(),
+            SizedBox(height: 16),
             _buildFinanceTipsButton(),
           ],
         ),
@@ -108,7 +117,8 @@ class _BillScreenState extends State<BillScreen> {
       children: [
         Text(
           "Budget Insights",
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
+          style: TextStyle(
+              fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
         ),
         SizedBox(height: 12),
         Row(
@@ -128,7 +138,9 @@ class _BillScreenState extends State<BillScreen> {
     return Container(
       padding: EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: _isBudgetExceeded ? Colors.redAccent.withOpacity(0.2) : Colors.limeAccent.withOpacity(0.5),
+        color: _isBudgetExceeded
+            ? Colors.redAccent.withOpacity(0.2)
+            : Colors.limeAccent.withOpacity(0.5),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -152,13 +164,74 @@ class _BillScreenState extends State<BillScreen> {
     );
   }
 
+  Widget _buildBarChart() {
+    return Container(
+      height: 200,
+      padding: EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 4,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: BarChart(
+        BarChartData(
+          borderData: FlBorderData(show: false),
+          gridData: FlGridData(show: false),
+          titlesData: FlTitlesData(
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(showTitles: true, reservedSize: 40),
+            ),
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (double value, TitleMeta meta) {
+                  List<String> labels = ["Mon", "Tue", "Wed", "Thu", "Fri"];
+                  return SideTitleWidget(
+                    axisSide: meta.axisSide,
+                    child: Text(labels[value.toInt()],
+                        style: TextStyle(fontSize: 12)),
+                  );
+                },
+                reservedSize: 32,
+              ),
+            ),
+          ),
+          barGroups: [
+            BarChartGroupData(x: 0, barRods: [
+              BarChartRodData(toY: 200, color: Color(0xFF7F07FF), width: 16)
+            ]),
+            BarChartGroupData(x: 1, barRods: [
+              BarChartRodData(toY: 300, color: Color(0xFF7F07FF), width: 16)
+            ]),
+            BarChartGroupData(x: 2, barRods: [
+              BarChartRodData(toY: 150, color: Color(0xFF7F07FF), width: 16)
+            ]),
+            BarChartGroupData(x: 3, barRods: [
+              BarChartRodData(toY: 280, color: Color(0xFF7F07FF), width: 16)
+            ]),
+            BarChartGroupData(x: 4, barRods: [
+              BarChartRodData(toY: 180, color: Color(0xFF7F07FF), width: 16)
+            ]),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildFinanceTipsButton() {
     return Center(
       child: GestureDetector(
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => TipsScreen(userId: widget.userId)),
+            MaterialPageRoute(
+                builder: (context) => TipsScreen(userId: widget.userId)),
           );
         },
         child: Container(

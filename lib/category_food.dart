@@ -403,8 +403,8 @@ class _FoodScreenState extends State<FoodScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildSpendingsChart(),
-            SizedBox(height: 20),
+             _buildBarChart(),
+            SizedBox(height: 16),
             _buildBudgetAllocation(),
             SizedBox(height: 20),
             _buildBudgetInsights(),
@@ -472,7 +472,65 @@ class _FoodScreenState extends State<FoodScreen> {
       ),
     );
   }
-
+Widget _buildBarChart() {
+    return Container(
+      height: 200,
+      padding: EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 4,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: BarChart(
+        BarChartData(
+          borderData: FlBorderData(show: false),
+          gridData: FlGridData(show: false),
+          titlesData: FlTitlesData(
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(showTitles: true, reservedSize: 40),
+            ),
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (double value, TitleMeta meta) {
+                  List<String> labels = ["Mon", "Tue", "Wed", "Thu", "Fri"];
+                  return SideTitleWidget(
+                    axisSide: meta.axisSide,
+                    child: Text(labels[value.toInt()],
+                        style: TextStyle(fontSize: 12)),
+                  );
+                },
+                reservedSize: 32,
+              ),
+            ),
+          ),
+          barGroups: [
+            BarChartGroupData(x: 0, barRods: [
+              BarChartRodData(toY: 200, color: Color(0xFF7F07FF), width: 16)
+            ]),
+            BarChartGroupData(x: 1, barRods: [
+              BarChartRodData(toY: 300, color: Color(0xFF7F07FF), width: 16)
+            ]),
+            BarChartGroupData(x: 2, barRods: [
+              BarChartRodData(toY: 150, color: Color(0xFF7F07FF), width: 16)
+            ]),
+            BarChartGroupData(x: 3, barRods: [
+              BarChartRodData(toY: 280, color: Color(0xFF7F07FF), width: 16)
+            ]),
+            BarChartGroupData(x: 4, barRods: [
+              BarChartRodData(toY: 180, color: Color(0xFF7F07FF), width: 16)
+            ]),
+          ],
+        ),
+      ),
+    );
+  }
   Widget _buildBudgetAllocation() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
