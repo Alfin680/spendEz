@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -6,6 +7,8 @@ import 'package:spendez_main/expense.dart';
 import 'package:spendez_main/overallInsights.dart';
 import 'package:spendez_main/tips.dart';
 import 'package:intl/intl.dart';
+import 'package:spendez_main/shared_pref.dart'; // Import SharedPrefs
+import 'package:spendez_main/login.dart'; // Import LoginPage for navigation
 
 class HomeScr extends StatelessWidget {
   final int userId;
@@ -34,7 +37,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
-  final String apiUrl = "http://127.0.0.1:5000/transactions";
+  // final String apiUrl = "http://127.0.0.1:5000/transactions";
+  final String apiUrl = "http://10.0.2.2:5000/transactions";
 
   Future<List<Map<String, dynamic>>> _fetchTransactions() async {
     try {
@@ -81,6 +85,16 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // Logout function
+  Future<void> _logout() async {
+    await SharedPrefs().clear(); // Clear Shared Preferences
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+          builder: (context) => LoginPage()), // Redirect to LoginPage
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -91,37 +105,56 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header
+              // Custom Header
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text("Home",
-                      style:
-                          TextStyle(fontSize: 30, fontWeight: FontWeight.bold)),
+                  Text(
+                    "Home",
+                    style: TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.logout),
+                    onPressed: _logout, // Call logout function
+                  ),
                 ],
               ),
               SizedBox(height: 20),
 
-              // Track Expense Card
+              // Rest of your content
               _buildAddTransactionCard(),
               SizedBox(height: 20),
-
-              // Recent Transactions Header
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text("Recent Transactions",
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  Text(
+                    "Recent Transactions",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   TextButton(
-                    onPressed: () {},
-                    child:
-                        Text("VIEW ALL", style: TextStyle(color: Colors.blue)),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              AllTransactions(userId: widget.userId),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      "VIEW ALL",
+                      style: TextStyle(color: Colors.blue),
+                    ),
                   ),
                 ],
               ),
               SizedBox(height: 10),
-
-              // Recent Transactions List
               _buildTransactionList(),
             ],
           ),
@@ -213,11 +246,14 @@ class _HomeScreenState extends State<HomeScreen> {
               return Center(child: Text("No transactions available."));
             }
 
-            return ListView.builder(
-              itemCount: snapshot.data!.length,
-              itemBuilder: (context, index) {
-                final transaction = snapshot.data![index];
+            // Limit transactions to 6
+            List<Map<String, dynamic>> recentTransactions =
+                snapshot.data!.take(6).toList();
 
+            return ListView.builder(
+              itemCount: recentTransactions.length,
+              itemBuilder: (context, index) {
+                final transaction = recentTransactions[index];
                 return TransactionItem(
                   date: transaction['date_time'],
                   name: transaction['expense_name'],
@@ -288,15 +324,6 @@ class TransactionItem extends StatelessWidget {
     required this.category,
     required this.amount,
   });
-
-  // String _formatDate(String date) {
-  //   try {
-  //     DateTime parsedDate = DateTime.tryParse(date) ?? DateTime.now();
-  //     return "${parsedDate.day} ${_getMonthAbbreviation(parsedDate.month)}";
-  //   } catch (e) {
-  //     return "Invalid Date";
-  //   }
-  // }
 
   String _formatDate(String date) {
     try {
@@ -380,5 +407,110 @@ class TransactionItem extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+class AllTransactions extends StatelessWidget {
+  final int userId;
+
+  AllTransactions({required this.userId});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          "All Transactions",
+          style: TextStyle(
+            fontWeight: FontWeight.bold, // Make the text bolder
+            fontSize: 20, // Optional: Adjust the font size
+          ),
+        ),
+      ),
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: _fetchTransactions(userId),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text("Error: ${snapshot.error}"));
+          }
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(
+                child: Text("No transactions available for this month."));
+          }
+
+          return Container(
+            margin: EdgeInsets.all(16), // Add margin around the container
+            padding: EdgeInsets.all(16), // Add padding inside the container
+            decoration: BoxDecoration(
+              color: Colors.white, // White background
+              borderRadius: BorderRadius.circular(20), // Rounded corners
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.3),
+                  blurRadius: 10,
+                  spreadRadius: 2,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
+            child: ListView.builder(
+              itemCount: snapshot.data!.length,
+              itemBuilder: (context, index) {
+                final transaction = snapshot.data![index];
+                return TransactionItem(
+                  date: transaction['date_time'],
+                  name: transaction['expense_name'],
+                  category: transaction['category'],
+                  amount:
+                      double.tryParse(transaction['amount'].toString()) ?? 0.0,
+                );
+              },
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> _fetchTransactions(int userId) async {
+    try {
+      final response = await http
+          .get(Uri.parse("http://10.0.2.2:5000/transactions/$userId"));
+
+      if (response.statusCode == 200) {
+        List<dynamic> jsonData = json.decode(response.body);
+        // Convert to List<Map<String, dynamic>> and sort by date (most recent first)
+        List<Map<String, dynamic>> transactions =
+            jsonData.map((item) => Map<String, dynamic>.from(item)).toList();
+
+        // Sort by date (assuming 'date_time' is in RFC 1123 format)
+        transactions.sort((a, b) {
+          DateTime dateA = DateFormat("EEE, dd MMM yyyy HH:mm:ss 'GMT'")
+              .parseUtc(a['date_time']);
+          DateTime dateB = DateFormat("EEE, dd MMM yyyy HH:mm:ss 'GMT'")
+              .parseUtc(b['date_time']);
+          return dateB.compareTo(dateA); // Sort in descending order
+        });
+
+        // Filter transactions to include only those from the current month
+        DateTime now = DateTime.now();
+        List<Map<String, dynamic>> currentMonthTransactions =
+            transactions.where((transaction) {
+          DateTime transactionDate =
+              DateFormat("EEE, dd MMM yyyy HH:mm:ss 'GMT'")
+                  .parseUtc(transaction['date_time']);
+          return transactionDate.month == now.month &&
+              transactionDate.year == now.year;
+        }).toList();
+
+        return currentMonthTransactions;
+      } else {
+        throw Exception('Failed to load transactions');
+      }
+    } catch (e) {
+      throw Exception('Error fetching transactions: $e');
+    }
   }
 }

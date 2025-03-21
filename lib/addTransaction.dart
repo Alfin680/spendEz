@@ -15,7 +15,8 @@ class AddTransactionScreen extends StatefulWidget {
 }
 
 class _AddTransactionScreenState extends State<AddTransactionScreen> {
-  final String apiUrl = "http://127.0.0.1:5000/transactions";
+  // final String apiUrl = "http://127.0.0.1:5000/transactions";
+  final String apiUrl = "http://10.0.2.2:5000/transactions";
   String selectedCategory = 'Food'; // Default category
   TextEditingController expenseNameController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();

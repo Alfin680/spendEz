@@ -4,13 +4,16 @@ from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 import mysql.connector
 import smtplib
+import os
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from flask import Flask, jsonify, request
 from predictor import predict_expense
+from dotenv import load_dotenv
 
 app = Flask(__name__)
 CORS(app)
+load_dotenv()
 
 # MySQL connection setup
 def get_db_connection():
@@ -63,38 +66,6 @@ initialize_db()
 def home():
     return "Flask Backend is running"
 
-# ✅ User Signup
-# @app.route('/signup', methods=['POST'])
-# def signup():
-#     try:
-#         username = request.json['username']
-#         email = request.json['email']
-#         password = request.json['password']
-
-#         hashed_password = generate_password_hash(password)
-#         conn = get_db_connection()
-#         cursor = conn.cursor()
-
-#         # Check if the email already exists
-#         cursor.execute("SELECT * FROM user WHERE email = %s", (email,))
-#         if cursor.fetchone():
-#             return jsonify({"error": "Email already exists!"}), 400
-
-#         # Insert the new user
-#         cursor.execute("INSERT INTO user (username, email, _password) VALUES (%s, %s, %s)", 
-#                        (username, email, hashed_password))
-#         conn.commit()
-
-#         user_id = cursor.lastrowid  # Get the last inserted user ID
-#         formatted_user_id = f'U{str(user_id).zfill(4)}'
-
-#         cursor.close()
-#         conn.close()
-
-#         return jsonify({"message": "User signed up successfully!", "user_id": formatted_user_id, "username": username}), 201
-
-#     except Exception as e:
-#         return jsonify({"error": str(e)}), 500
 @app.route('/signup', methods=['POST'])
 def signup():
     try:
@@ -164,7 +135,10 @@ def login():
 @app.route('/forgot-password', methods=['POST'])
 def forgot_password():
     try:
-        email = request.json['email']
+        email = request.json.get('email')
+        if not email:
+            return jsonify({"error": "Email is required!"}), 400
+
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM user WHERE email = %s", (email,))
@@ -174,16 +148,26 @@ def forgot_password():
             return jsonify({"error": "Email not found!"}), 404
 
         sender_email = os.getenv("EMAIL_SENDER")
-        sender_password = os.getenv("EMAIL_PASSWORD")  # Use environment variable for security
+        sender_password = os.getenv("EMAIL_PASSWORD")
 
+        # Debug: Print email credentials
+        print(f"Email Sender: {sender_email}")
+        print(f"Email Password: {sender_password}")
+
+        if not sender_email or not sender_password:
+            return jsonify({"error": "Email credentials are not configured!"}), 500
+
+        # Create the email message
         message = MIMEMultipart()
         message["From"] = sender_email
         message["To"] = email
         message["Subject"] = "Reset your SPENDEZ password"
 
         reset_link = "http://10.0.2.2:5000/reset-password"
-        message.attach(MIMEText(f"Click here to reset your password: {reset_link}", "plain"))
+        body = f"Click here to reset your password: {reset_link}"
+        message.attach(MIMEText(body, "plain"))
 
+        # Send the email
         server = smtplib.SMTP('smtp.gmail.com', 587)
         server.starttls()
         server.login(sender_email, sender_password)
@@ -192,8 +176,11 @@ def forgot_password():
 
         return jsonify({"message": "Password reset email sent!"}), 200
 
+    except smtplib.SMTPAuthenticationError:
+        return jsonify({"error": "Invalid email credentials!"}), 500
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"Error: {e}")
+        return jsonify({"error": "An error occurred. Please try again later."}), 500
     finally:
         if cursor: cursor.close()
         if conn: conn.close()
@@ -238,7 +225,7 @@ def get_transactions(user_id):
             FROM transactions 
             WHERE user_id = %s 
             ORDER BY date_time DESC 
-            LIMIT 10
+
         """, (user_id,))
         
         transactions = cursor.fetchall()
@@ -291,7 +278,7 @@ def get_insights(user_id):
         "Travel": "#008000",
         "Bills": "#FF0000",
         "Fun": "#0000FF",
-        "Others": "#800080",
+        "Other": "#800080",
         "Shopping": "#FF69B4"  # Add any other fixed categories
     }
 

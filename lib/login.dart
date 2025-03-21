@@ -4,6 +4,7 @@ import 'dart:convert';
 
 import 'package:spendez_main/resetPass.dart';
 import 'package:spendez_main/home.dart'; // Import your home page
+import 'package:spendez_main/shared_pref.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -18,6 +19,8 @@ class _LoginPageState extends State<LoginPage> {
   bool _isPasswordVisible = false; // Track password visibility
 
   // Function to handle login request
+  // Import SharedPrefs
+
   Future<void> _login() async {
     // Validate fields
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
@@ -30,8 +33,9 @@ class _LoginPageState extends State<LoginPage> {
     // API request
     try {
       final response = await http.post(
-        Uri.parse(
-            'http://127.0.0.1:5000/login'), // Replace with your backend URL
+        // Uri.parse(
+        //     'http://127.0.0.1:5000/login'),
+        Uri.parse('http://10.0.2.2:5000/login'),
         headers: {"Content-Type": "application/json"},
         body: json.encode({
           'email': _emailController.text,
@@ -44,6 +48,10 @@ class _LoginPageState extends State<LoginPage> {
         final responseData = json.decode(response.body);
         final int userId =
             responseData['user_id']; // Extract user_id from the response
+
+        // Save login status and user ID
+        await SharedPrefs().setLoggedIn(true);
+        await SharedPrefs().setUserId(userId);
 
         // Navigate to the home page with user_id
         Navigator.pushReplacement(

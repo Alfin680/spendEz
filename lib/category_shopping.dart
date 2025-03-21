@@ -194,39 +194,37 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:spendez_main/expense.dart';
 import 'package:spendez_main/tips.dart';
 
-
-  Widget _buildBudgetCircle(String value, String label) {
-    return Column(
-      children: [
-        Container(
-          width: 80,
-          height: 80,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: LinearGradient(
-              colors: [Color(0xFF7F07FF), Color(0xFF4C0499)],
-            ),
+Widget _buildBudgetCircle(String value, String label) {
+  return Column(
+    children: [
+      Container(
+        width: 80,
+        height: 80,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: LinearGradient(
+            colors: [Color(0xFF7F07FF), Color(0xFF4C0499)],
           ),
-          child: Center(
-            child: Text(
-              value,
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-              ),
+        ),
+        child: Center(
+          child: Text(
+            value,
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
             ),
           ),
         ),
-        SizedBox(height: 8),
-        Text(
-          label,
-          style: TextStyle(fontSize: 12, color: Colors.black54),
-        ),
-      ],
-    );
-  }
-
+      ),
+      SizedBox(height: 8),
+      Text(
+        label,
+        style: TextStyle(fontSize: 12, color: Colors.black54),
+      ),
+    ],
+  );
+}
 
 class Shopping extends StatelessWidget {
   final int userId;
@@ -369,8 +367,13 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                 getTitlesWidget: (double value, TitleMeta meta) {
                   List<String> labels = ["Mon", "Tue", "Wed", "Thu", "Fri"];
                   return SideTitleWidget(
-                    axisSide: meta.axisSide,
-                    child: Text(labels[value.toInt()], style: TextStyle(fontSize: 12)),
+                    space: 4, // Adjust space between title and axis
+                    angle: 0, // Set rotation if needed
+                    meta: meta,
+                    child: Text(
+                      labels[value.toInt()],
+                      style: TextStyle(fontSize: 12),
+                    ),
                   );
                 },
                 reservedSize: 32,
@@ -378,11 +381,21 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
             ),
           ),
           barGroups: [
-            BarChartGroupData(x: 0, barRods: [BarChartRodData(toY: 200, color: Color(0xFF7F07FF), width: 16)]),
-            BarChartGroupData(x: 1, barRods: [BarChartRodData(toY: 300, color: Color(0xFF7F07FF), width: 16)]),
-            BarChartGroupData(x: 2, barRods: [BarChartRodData(toY: 150, color: Color(0xFF7F07FF), width: 16)]),
-            BarChartGroupData(x: 3, barRods: [BarChartRodData(toY: 280, color: Color(0xFF7F07FF), width: 16)]),
-            BarChartGroupData(x: 4, barRods: [BarChartRodData(toY: 180, color: Color(0xFF7F07FF), width: 16)]),
+            BarChartGroupData(x: 0, barRods: [
+              BarChartRodData(toY: 200, color: Color(0xFF7F07FF), width: 16)
+            ]),
+            BarChartGroupData(x: 1, barRods: [
+              BarChartRodData(toY: 300, color: Color(0xFF7F07FF), width: 16)
+            ]),
+            BarChartGroupData(x: 2, barRods: [
+              BarChartRodData(toY: 150, color: Color(0xFF7F07FF), width: 16)
+            ]),
+            BarChartGroupData(x: 3, barRods: [
+              BarChartRodData(toY: 280, color: Color(0xFF7F07FF), width: 16)
+            ]),
+            BarChartGroupData(x: 4, barRods: [
+              BarChartRodData(toY: 180, color: Color(0xFF7F07FF), width: 16)
+            ]),
           ],
         ),
       ),
@@ -395,7 +408,8 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
       children: [
         Text(
           "Set Budget",
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
+          style: TextStyle(
+              fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
         ),
         SizedBox(height: 8),
         TextField(
@@ -419,7 +433,8 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
       children: [
         Text(
           "Budget Insights",
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
+          style: TextStyle(
+              fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
         ),
         SizedBox(height: 12),
         Row(
@@ -485,13 +500,17 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
             ),
             borderRadius: BorderRadius.circular(30),
           ),
-          child: Text("Get Finance Tips", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+          child: Text("Get Finance Tips",
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold)),
         ),
       ),
     );
   }
 
-Widget _buildBudgetCircle(String value, String label) {
+  Widget _buildBudgetCircle(String value, String label) {
     return Column(
       children: [
         Container(
@@ -523,4 +542,3 @@ Widget _buildBudgetCircle(String value, String label) {
     );
   }
 }
-

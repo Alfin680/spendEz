@@ -1209,9 +1209,13 @@ class _TravelScreenState extends State<TravelScreen> {
                 getTitlesWidget: (double value, TitleMeta meta) {
                   List<String> labels = ["Mon", "Tue", "Wed", "Thu", "Fri"];
                   return SideTitleWidget(
-                    axisSide: meta.axisSide,
-                    child: Text(labels[value.toInt()],
-                        style: TextStyle(fontSize: 12)),
+                    space: 4, // Adjust space between title and axis
+                    angle: 0, // Set rotation if needed
+                    meta: meta,
+                    child: Text(
+                      labels[value.toInt()],
+                      style: TextStyle(fontSize: 12),
+                    ),
                   );
                 },
                 reservedSize: 32,

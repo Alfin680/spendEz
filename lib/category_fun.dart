@@ -96,7 +96,7 @@ class _FunScreenState extends State<FunScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-             _buildBarChart(),
+            _buildBarChart(),
             SizedBox(height: 16),
             //_buildBudgetAllocation(),
             SizedBox(height: 20),
@@ -133,7 +133,8 @@ class _FunScreenState extends State<FunScreen> {
       ],
     );
   }
-Widget _buildBarChart() {
+
+  Widget _buildBarChart() {
     return Container(
       height: 200,
       padding: EdgeInsets.all(12),
@@ -162,9 +163,13 @@ Widget _buildBarChart() {
                 getTitlesWidget: (double value, TitleMeta meta) {
                   List<String> labels = ["Mon", "Tue", "Wed", "Thu", "Fri"];
                   return SideTitleWidget(
-                    axisSide: meta.axisSide,
-                    child: Text(labels[value.toInt()],
-                        style: TextStyle(fontSize: 12)),
+                    space: 4, // Adjust space between title and axis
+                    angle: 0, // Set rotation if needed
+                    meta: meta,
+                    child: Text(
+                      labels[value.toInt()],
+                      style: TextStyle(fontSize: 12),
+                    ),
                   );
                 },
                 reservedSize: 32,
@@ -192,6 +197,7 @@ Widget _buildBarChart() {
       ),
     );
   }
+
   Widget _buildBudgetStatus() {
     return Container(
       padding: EdgeInsets.all(12),

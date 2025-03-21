@@ -643,7 +643,7 @@ class _InsightsPageState extends State<InsightsPage> {
     "Travel": "#008000",
     "Bills": "#FF0000",
     "Fun": "#0000FF",
-    "Others": "#800080",
+    "Other": "#800080",
     "Shopping": "#FF69B4"
   };
 
@@ -658,14 +658,15 @@ class _InsightsPageState extends State<InsightsPage> {
       _isLoading = true;
     });
 
+    // final url = Uri.parse(
+    //     "http://127.0.0.1:5000/insights/${widget.userId}?duration=$duration");
     final url = Uri.parse(
-        "http://127.0.0.1:5000/insights/${widget.userId}?duration=$duration");
-
+        "http://10.0.2.2:5000/insights/${widget.userId}?duration=$duration");
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-
+        print("Fetched data: $data");
         Map<String, dynamic> fetchedCategories = {
           for (var item in data['categories'])
             item['name']: {
@@ -995,14 +996,14 @@ class _InsightsPageState extends State<InsightsPage> {
               style: TextStyle(fontSize: 16, color: Colors.black54),
             ),
             SizedBox(height: 8),
-            Text(
-              "Notes:",
-              style: TextStyle(fontSize: 14, color: Colors.black54),
-            ),
-            Text(
-              "Note subscription",
-              style: TextStyle(fontSize: 14, color: Colors.black54),
-            ),
+            // Text(
+            //   "Notes:",
+            //   style: TextStyle(fontSize: 14, color: Colors.black54),
+            // ),
+            // Text(
+            //   "Note subscription",
+            //   style: TextStyle(fontSize: 14, color: Colors.black54),
+            // ),
           ],
         ),
       ),
