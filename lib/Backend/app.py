@@ -239,70 +239,83 @@ def get_transactions(user_id):
 
 @app.route('/insights/<int:user_id>', methods=['GET'])
 def get_insights(user_id):
+    """Fetch spending insights for a user based on the selected duration."""
     duration = request.args.get('duration', 'Month')
 
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    # Validate duration parameter
+    if duration not in ["Week", "Month", "Year"]:
+        return jsonify({"error": "Invalid duration. Use 'Week', 'Month', or 'Year'."}), 400
 
-    today = datetime.today()
+    try:
+        # Establish database connection
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
 
-    if duration == "Week":
-        start_date = today - timedelta(days=today.weekday())  # Get last Sunday
-    elif duration == "Month":
-        start_date = today.replace(day=1)  # Get 1st of the month
-    elif duration == "Year":
-        start_date = today.replace(month=1, day=1)  # Get January 1st
-    else:
-        return jsonify({"error": "Invalid duration"}), 400
+        # Calculate start date based on duration
+        today = datetime.today()
+        if duration == "Week":
+            start_date = today - timedelta(days=today.weekday())  # Start of the week (last Sunday)
+        elif duration == "Month":
+            start_date = today.replace(day=1)  # Start of the month
+        elif duration == "Year":
+            start_date = today.replace(month=1, day=1)  # Start of the year
 
-    # ✅ Convert to SQL-compatible datetime format
-    start_date = start_date.strftime('%Y-%m-%d %H:%M:%S')
+        # Convert to SQL-compatible datetime format
+        start_date = start_date.strftime('%Y-%m-%d %H:%M:%S')
 
-    # ✅ Fetch transactions only from the selected duration
-    query = """
-    SELECT e.category, SUM(e.amount) as total_amount
-    FROM transactions e
-    WHERE e.user_id = %s AND e.date_time >= %s
-    GROUP BY e.category
-    """
+        # Fetch transactions for the selected duration
+        query = """
+        SELECT e.category, SUM(e.amount) as total_amount
+        FROM transactions e
+        WHERE e.user_id = %s AND e.date_time >= %s
+        GROUP BY e.category
+        """
+        cursor.execute(query, (user_id, start_date))
+        results = cursor.fetchall()
 
-    cursor.execute(query, (user_id, start_date))
-    results = cursor.fetchall()
-
-    cursor.close()
-    conn.close()
-
-    # ✅ Define Default Categories & Colors
-    category_colors = {
-        "Food": "#FFA500",
-        "Travel": "#008000",
-        "Bills": "#FF0000",
-        "Fun": "#0000FF",
-        "Other": "#800080",
-        "Shopping": "#FF69B4"  # Add any other fixed categories
-    }
-
-    # ✅ Convert results to a dictionary for easy lookup
-    result_dict = {item['category']: item['total_amount'] for item in results}
-
-    # ✅ Calculate Total Spent
-    total_spent = sum(result_dict.values())
-
-    # ✅ Ensure all categories are included, even if 0
-    categories = [
-        {
-            "name": category,
-            "color": category_colors.get(category, "#808080"),  # Default Gray
-            "amount": f"₹{result_dict.get(category, 0):.2f}",
-            "percentage": f"{(result_dict.get(category, 0) / total_spent * 100):.1f}%" if total_spent > 0 else "0%"
+        # Define default categories and colors
+        category_colors = {
+            "Food": "#FFA500",
+            "Travel": "#008000",
+            "Bills": "#FF0000",
+            "Fun": "#0000FF",
+            "Other": "#800080",
+            "Shopping": "#FF69B4"
         }
-        for category in category_colors.keys()
-    ]
 
-    return jsonify({
-        "total_spent": total_spent,
-        "categories": categories
-    })
+        # Convert results to a dictionary for easy lookup
+        result_dict = {item['category']: item['total_amount'] for item in results}
+
+        # Calculate total spent
+        total_spent = sum(result_dict.values())
+
+        # Ensure all categories are included, even if 0
+        categories = [
+            {
+                "name": category,
+                "color": category_colors.get(category, "#808080"),  # Default gray for unknown categories
+                "amount": f"₹{result_dict.get(category, 0):.2f}",
+                "percentage": f"{(result_dict.get(category, 0) / total_spent * 100):.1f}%" if total_spent > 0 else "0%"
+            }
+            for category in category_colors.keys()
+        ]
+
+        # Close database connection
+        cursor.close()
+        conn.close()
+
+        # Return response
+        return jsonify({
+            "total_spent": total_spent,
+            "categories": categories
+        })
+
+    except mysql.connector.Error as err:
+        # Handle database errors
+        return jsonify({"error": f"Database error: {err}"}), 500
+    except Exception as e:
+        # Handle other unexpected errors
+        return jsonify({"error": f"An unexpected error occurred: {e}"}), 500
 
 @app.route('/tips', methods=['GET'])
 def get_finance_tips():
@@ -344,125 +357,82 @@ def get_category_total():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
-@app.route('/food-spendings/<int:user_id>', methods=['GET'])
-def get_food_spendings(user_id):
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
 
-        # Fetch food expenses for the last 7 days
-        query = """
-        SELECT DATE(date_time) as date, SUM(amount) as total_amount
-        FROM transactions
-        WHERE user_id = %s AND category = 'Food' AND date_time >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
-        GROUP BY DATE(date_time)
-        ORDER BY DATE(date_time)
-        """
-        cursor.execute(query, (user_id,))
-        results = cursor.fetchall()
 
-        cursor.close()
-        conn.close()
-
-        # Format results for the frontend
-        spendings = {result['date']: result['total_amount'] for result in results}
-        return jsonify(spendings), 200
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-    
-
-@app.route('/budget-insights/<int:user_id>', methods=['GET'])
-def get_budget_insights(user_id):
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-
-        # Fetch total budget (assuming it's stored in a budget table)
-        cursor.execute("SELECT total_budget FROM budget WHERE user_id = %s", (user_id,))
-        budget_result = cursor.fetchone()
-        total_budget = budget_result['total_budget'] if budget_result else 0
-
-        # Fetch total spent on food for the last 30 days
-        query = """
-        SELECT SUM(amount) as total_spent
-        FROM transactions
-        WHERE user_id = %s AND category = 'Food' AND date_time >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
-        """
-        cursor.execute(query, (user_id,))
-        spent_result = cursor.fetchone()
-        total_spent = spent_result['total_spent'] if spent_result['total_spent'] else 0
-
-        # Calculate budget left
-        budget_left = total_budget - total_spent
-
-        cursor.close()
-        conn.close()
-
-        return jsonify({
-            "total_budget": total_budget,
-            "total_spent": total_spent,
-            "budget_left": budget_left
-        }), 200
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-    
-@app.route("/food-expense-history", methods=["GET"])
-def get_food_expenses():
-    user_id = request.args.get("user_id")
-
+@app.route('/food-spending-week', methods=['GET'])
+def food_spending_week():
+    user_id = request.args.get('user_id')
     if not user_id:
-        return jsonify({"error": "User ID is required"}), 400
+        return jsonify({"error": "user_id is required"}), 400
 
-    try:
-        # Get the first day of last month
-        today = datetime.date.today()
-        first_day_last_month = (today.replace(day=1) - datetime.timedelta(days=1)).replace(day=1)
-        last_day_last_month = today.replace(day=1) - datetime.timedelta(days=1)
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
 
-        cur = mysql.connection.cursor()
-        
-        # Fetch total amount spent on Food category in last month
-        query = """
-            SELECT COALESCE(SUM(amount), 0) 
-            FROM transactions 
-            WHERE user_id = %s 
-            AND category = 'Food' 
-            AND date BETWEEN %s AND %s
-        """
-        
-        cur.execute(query, (user_id, first_day_last_month, last_day_last_month))
-        total_spent = cur.fetchone()[0]
+    # Calculate the start date (7 days ago)
+    end_date = datetime.today()
+    start_date = end_date - timedelta(days=7)
 
-        # Fetch daily food expenses for the last month
-        query = """
-            SELECT DATE(date) AS expense_date, SUM(amount) 
-            FROM transactions 
-            WHERE user_id = %s 
-            AND category = 'Food' 
-            AND date BETWEEN %s AND %s 
-            GROUP BY DATE(date) 
-            ORDER BY expense_date
-        """
-        cur.execute(query, (user_id, first_day_last_month, last_day_last_month))
-        expense_data = cur.fetchall()
-        
-        cur.close()
+    # Fetch spending data for the last 7 days for the Food category
+    query = """
+    SELECT DATE(date_time) as date, SUM(amount) as total_amount
+    FROM transactions
+    WHERE user_id = %s AND category = 'Food' AND date_time >= %s
+    GROUP BY DATE(date_time)
+    ORDER BY DATE(date_time)
+    """
+    cursor.execute(query, (user_id, start_date))
+    results = cursor.fetchall()
 
-        # Format response
-        dates = [str(row[0]) for row in expense_data]
-        expenses = [float(row[1]) for row in expense_data]
+    cursor.close()
+    conn.close()
 
-        return jsonify({
-            "total_spent": float(total_spent),
-            "dates": dates,
-            "expenses": expenses
-        })
-    
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    # Prepare data for the response
+    spendings = []
+    labels = []
+    current_date = start_date
+    while current_date <= end_date:
+        date_str = current_date.strftime('%b %d')  # Format: "Aug 12"
+        amount = next((item['total_amount'] for item in results if item['date'] == current_date.date()), 0)
+        spendings.append(amount)
+        labels.append(date_str)
+        current_date += timedelta(days=1)
+
+    return jsonify({
+        "spendings": spendings,
+        "labels": labels
+    })
+
+# Endpoint to fetch total budget spent on food for the current month
+@app.route('/food-budget-spent', methods=['GET'])
+def food_budget_spent():
+    user_id = request.args.get('user_id')
+    if not user_id:
+        return jsonify({"error": "user_id is required"}), 400
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    # Calculate the start date (1st of the current month)
+    today = datetime.today()
+    start_date = today.replace(day=1)
+
+    # Fetch total budget spent on food for the current month
+    query = """
+    SELECT SUM(amount) as total_spent
+    FROM transactions
+    WHERE user_id = %s AND category = 'Food' AND date_time >= %s
+    """
+    cursor.execute(query, (user_id, start_date))
+    result = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    total_spent = result['total_spent'] if result['total_spent'] else 0
+
+    return jsonify({
+        "budget_spent": total_spent
+    })
 
 
 
