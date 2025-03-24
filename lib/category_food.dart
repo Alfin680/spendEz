@@ -49,7 +49,7 @@ class _FoodScreenState extends State<FoodScreen> {
 
   Future<void> _fetchSpendingData() async {
     final url = Uri.parse(
-        "http://10.0.2.2:5000/food-spending-week?user_id=${widget.userId}");
+        "http://127.0.0.1:5000/category-spending-week?user_id=${widget.userId}&category=Food"); // Replace "Food" with the desired category
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -71,7 +71,7 @@ class _FoodScreenState extends State<FoodScreen> {
 
   Future<void> _fetchBudgetSpent() async {
     final url = Uri.parse(
-        "http://10.0.2.2:5000/food-budget-spent?user_id=${widget.userId}");
+        "http://127.0.0.1:5000/category-budget-spent?user_id=${widget.userId}&category=Food"); // Replace "Food" with the desired category
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {

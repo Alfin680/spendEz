@@ -6,7 +6,7 @@ from flask import Flask, request, jsonify
 
 # Database Connection (Using SQLAlchemy)
 DB_USER = "root"
-DB_PASSWORD = "Alfin%402022"
+DB_PASSWORD = "njn%402003"
 DB_HOST = "localhost"
 DB_NAME = "finance_db"
 
@@ -68,6 +68,19 @@ def predict_expense(user_id):
 # Flask API for Predictions
 app = Flask(__name__)
 
+# @app.route("/predict", methods=["GET"])
+# def get_prediction():
+#     user_id = request.args.get("user_id", type=int)
+    
+#     if not user_id:
+#         return jsonify({"error": "User ID is required"}), 400
+
+#     predicted_amount = predict_expense(user_id)
+
+#     if predicted_amount is None:
+#         return jsonify({"error": "Not enough data to predict"}), 400
+
+#     return jsonify({"user_id": user_id, "predicted_next_month_expense": predicted_amount})
 @app.route("/predict", methods=["GET"])
 def get_prediction():
     user_id = request.args.get("user_id", type=int)
@@ -81,6 +94,7 @@ def get_prediction():
         return jsonify({"error": "Not enough data to predict"}), 400
 
     return jsonify({"user_id": user_id, "predicted_next_month_expense": predicted_amount})
+
 
 if __name__ == "__main__":
     app.run(debug=True)

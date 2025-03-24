@@ -37,8 +37,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
-  // final String apiUrl = "http://127.0.0.1:5000/transactions";
-  final String apiUrl = "http://10.0.2.2:5000/transactions";
+  final String apiUrl = "http://127.0.0.1:5000/transactions";
+  //final String apiUrl = "http://10.0.2.2:5000/transactions";
 
   Future<List<Map<String, dynamic>>> _fetchTransactions() async {
     try {

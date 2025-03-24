@@ -21,7 +21,8 @@ class SpendEz extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.purple,
       ),
-      initialRoute: SharedPrefs().getLoggedIn() ? '/home' : '/', // Check login status
+      initialRoute:
+          SharedPrefs().getLoggedIn() ? '/home' : '/', // Check login status
       routes: {
         '/': (context) => GetStartedPage(),
         '/onboard': (context) => LoginSelectionPage(),

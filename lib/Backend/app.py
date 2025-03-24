@@ -1,4 +1,3 @@
-from flask import Flask, request, jsonify
 from datetime import datetime, timedelta
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -10,17 +9,25 @@ from email.mime.multipart import MIMEMultipart
 from flask import Flask, jsonify, request
 from predictor import predict_expense
 from dotenv import load_dotenv
+from flask import Flask, request, jsonify
+import pandas as pd
+import numpy as np
+
+
+
 
 app = Flask(__name__)
 CORS(app)
 load_dotenv()
+
+
 
 # MySQL connection setup
 def get_db_connection():
     conn = mysql.connector.connect(
         host='localhost',
         user='root',
-        password='Alfin@2022',  
+        password='njn@2003',  
         database='finance_db'  
     )
     return conn
@@ -163,7 +170,7 @@ def forgot_password():
         message["To"] = email
         message["Subject"] = "Reset your SPENDEZ password"
 
-        reset_link = "http://10.0.2.2:5000/reset-password"
+        reset_link = "http://127.0.0.1:5000/reset-password"
         body = f"Click here to reset your password: {reset_link}"
         message.attach(MIMEText(body, "plain"))
 
@@ -359,11 +366,13 @@ def get_category_total():
         return jsonify({"error": str(e)}), 500
 
 
-@app.route('/food-spending-week', methods=['GET'])
-def food_spending_week():
+@app.route('/category-spending-week', methods=['GET'])
+def category_spending_week():
     user_id = request.args.get('user_id')
-    if not user_id:
-        return jsonify({"error": "user_id is required"}), 400
+    category = request.args.get('category')
+    
+    if not user_id or not category:
+        return jsonify({"error": "user_id and category are required"}), 400
 
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -372,15 +381,15 @@ def food_spending_week():
     end_date = datetime.today()
     start_date = end_date - timedelta(days=7)
 
-    # Fetch spending data for the last 7 days for the Food category
+    # Fetch spending data for the last 7 days for the specified category
     query = """
     SELECT DATE(date_time) as date, SUM(amount) as total_amount
     FROM transactions
-    WHERE user_id = %s AND category = 'Food' AND date_time >= %s
+    WHERE user_id = %s AND category = %s AND date_time >= %s
     GROUP BY DATE(date_time)
     ORDER BY DATE(date_time)
     """
-    cursor.execute(query, (user_id, start_date))
+    cursor.execute(query, (user_id, category, start_date))
     results = cursor.fetchall()
 
     cursor.close()
@@ -402,12 +411,14 @@ def food_spending_week():
         "labels": labels
     })
 
-# Endpoint to fetch total budget spent on food for the current month
-@app.route('/food-budget-spent', methods=['GET'])
-def food_budget_spent():
+# Common API to fetch total budget spent for the current month for a specific category
+@app.route('/category-budget-spent', methods=['GET'])
+def category_budget_spent():
     user_id = request.args.get('user_id')
-    if not user_id:
-        return jsonify({"error": "user_id is required"}), 400
+    category = request.args.get('category')
+    
+    if not user_id or not category:
+        return jsonify({"error": "user_id and category are required"}), 400
 
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -416,13 +427,13 @@ def food_budget_spent():
     today = datetime.today()
     start_date = today.replace(day=1)
 
-    # Fetch total budget spent on food for the current month
+    # Fetch total budget spent for the specified category for the current month
     query = """
     SELECT SUM(amount) as total_spent
     FROM transactions
-    WHERE user_id = %s AND category = 'Food' AND date_time >= %s
+    WHERE user_id = %s AND category = %s AND date_time >= %s
     """
-    cursor.execute(query, (user_id, start_date))
+    cursor.execute(query, (user_id, category, start_date))
     result = cursor.fetchone()
 
     cursor.close()
@@ -434,23 +445,155 @@ def food_budget_spent():
         "budget_spent": total_spent
     })
 
-
-
-@app.route('/predict_expense', methods=['GET'])
-def get_expense_prediction():
-    user_id = request.args.get('user_id', type=int)  # Get the user_id from the query parameter
-
+@app.route("/predict", methods=["GET"])
+def get_prediction():
+    user_id = request.args.get("user_id", type=int)
+    
     if not user_id:
-        return jsonify({'error': 'user_id is required'}), 400
+        return jsonify({"error": "User ID is required"}), 400
 
-    # Call the predict_expense function from predictor.py
     predicted_amount = predict_expense(user_id)
 
     if predicted_amount is None:
-        return jsonify({'error': 'Not enough data to predict'}), 400
+        return jsonify({"error": "Not enough data to predict"}), 400
 
-    return jsonify({'user_id': user_id, 'predicted_next_month_expense': predicted_amount})
+    return jsonify({"user_id": user_id, "predicted_next_month_expense": predicted_amount})
 
-        
+# def get_last_five_months():
+#     now = datetime.now()
+#     months = []
+#     for i in range(4, -1, -1):
+#         month = (now - timedelta(days=30 * i)).strftime('%Y-%m')  # Format: YYYY-MM
+#         months.append(month)
+#     return months
+
+# @app.route('/monthly-expense/<int:user_id>', methods=['GET'])
+# def get_monthly_expense(user_id):
+#     try:
+#         conn = mysql.connector.connect(**db_config)
+#         cursor = conn.cursor(dictionary=True)
+
+#         last_five_months = get_last_five_months()
+
+#         query = """
+#         SELECT DATE_FORMAT(date, '%Y-%m') as month, SUM(amount) as total
+#         FROM transactions
+#         WHERE user_id = %s AND DATE_FORMAT(date, '%Y-%m') IN (%s, %s, %s, %s, %s)
+#         GROUP BY month
+#         ORDER BY month;
+#         """
+#         cursor.execute(query, [user_id] + last_five_months)
+
+#         result = cursor.fetchall()
+#         cursor.close()
+#         conn.close()
+
+#         # Format the response to ensure all 5 months are included
+#         expenses_data = {month: 0 for month in last_five_months}  # Default to 0
+#         for row in result:
+#             expenses_data[row['month']] = float(row['total'])
+
+#         return jsonify({
+#             "months": list(expenses_data.keys()),
+#             "expenses": list(expenses_data.values())
+#         })
+
+#     except Exception as e:
+#         return jsonify({"error": str(e)}), 500
+
+def fetch_user_transactions(user_id):
+    connection = get_db_connection()
+    if not connection:
+       return None
+    
+    query = f"SELECT category, amount, date_time FROM transactions WHERE user_id = {user_id}"
+    cursor = connection.cursor(dictionary=True)
+    cursor.execute(query)
+    rows = cursor.fetchall()
+    cursor.close()
+    connection.close()
+    
+    if not rows:
+        return None
+    
+    df = pd.DataFrame(rows)
+    df["date_time"] = pd.to_datetime(df["date_time"])
+    df["amount"] = df["amount"].astype(float)
+
+    return df
+
+# Budget Allocation Logic
+def calculate_budget_allocation(data, predicted_amount):
+    categories = {
+        "Needs": ["Food", "Bills", "Rent"],
+        "Wants": ["Fun", "Shopping", "Travel"],
+        "Savings": ["Other"]
+    }
+
+    other_percentage = np.random.uniform(0.05, 0.10)
+    other_amount = predicted_amount * other_percentage
+    remaining_budget = predicted_amount - other_amount
+
+    savings_percentage = np.random.uniform(0.10, 0.15)
+    savings_amount = remaining_budget * savings_percentage
+    remaining_budget -= savings_amount  
+
+    budget_allocation = {
+        "Needs": remaining_budget * 0.50,
+        "Wants": remaining_budget * 0.30,
+        "Savings": remaining_budget * 0.20  
+    }
+
+    allocation_result = {}
+    needs_total = budget_allocation["Needs"]
+    variations = np.random.uniform(0.90, 1.10, len(categories["Needs"]))
+    needs_allocations = (needs_total * variations) / variations.sum()
+
+    for i, category in enumerate(categories["Needs"]):
+        allocation_result[category] = needs_allocations[i]
+
+    wants_total = budget_allocation["Wants"]
+    past_spending = data.groupby("category")["amount"].sum()
+
+    for category in categories["Wants"]:
+        past_ratio = past_spending.get(category, 1) / past_spending.sum() if past_spending.sum() > 0 else 1 / len(categories["Wants"])
+        allocation_result[category] = wants_total * past_ratio
+
+    allocation_result["Other"] = other_amount
+    allocation_result["Savings"] = savings_amount  
+
+    total_allocated = sum(allocation_result.values())
+    scale_factor = predicted_amount / total_allocated
+    for category in allocation_result:
+        allocation_result[category] *= scale_factor
+    
+    return allocation_result
+
+@app.route("/budget-allocation", methods=["GET"])
+def budget_allocation():
+    #user_id = session.get("user_id")  # Get logged-in user_id
+    user_id = request.args.get("user_id", type=int)
+    if not user_id:
+        return jsonify({"error": "User not logged in"}), 401
+
+    predicted_amount = predict_expense(user_id)  # Get predicted expense
+    if predicted_amount is None:
+        return jsonify({"error": "Not enough data to predict"}), 400
+    
+    data = fetch_user_transactions(user_id)
+    if data is None or data.empty:
+        return jsonify({"error": "No transaction data found"}), 404
+
+    allocation = calculate_budget_allocation(data, predicted_amount)
+
+    return jsonify({
+        "user_id": user_id,
+        "predicted_amount": predicted_amount,
+        "budget_allocation": allocation
+    })
+
+
+
+
 if __name__ == '__main__':
     app.run(debug=True)

@@ -6,7 +6,7 @@ from sklearn.ensemble import RandomForestRegressor
 
 # Database Connection (Using SQLAlchemy)
 DB_USER = "root"
-DB_PASSWORD = "Alfin%402022"
+DB_PASSWORD = "njn%402003"
 DB_HOST = "localhost"
 DB_NAME = "finance_db"
 
