@@ -505,20 +505,21 @@ class _AnalysisPageState extends State<AnalysisPage> {
               _buildExpenseItem(8, "REMAINING",
                   budgetAllocation["Savings"] ?? 0.0, Icons.savings),
 
-                  // Move these inside Column
-            SizedBox(height: 20),
+              // Move these inside Column
+              SizedBox(height: 20),
 
-            Text(
-              "WOW! The recommended budget helps you save ₹${budgetAllocation["Savings"]?.toInt() ?? 0} next month... Let's go!",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: const Color.fromARGB(255, 45, 14, 116), // Stylish color
+              Text(
+                "WOW! The recommended budget helps you save ₹${budgetAllocation["Savings"]?.toInt() ?? 0} next month... Let's go!",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color:
+                      const Color.fromARGB(255, 45, 14, 116), // Stylish color
+                ),
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
-            ),
 
-            SizedBox(height: 20),
+              SizedBox(height: 20),
             ],
           ),
         ),
@@ -526,21 +527,6 @@ class _AnalysisPageState extends State<AnalysisPage> {
 
       // Caption at the bottom
       // Some space before bottom navigation
-
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.black,
-        selectedItemColor: const Color.fromARGB(255, 127, 7, 255),
-        unselectedItemColor: Colors.white,
-        showUnselectedLabels: true,
-        items: [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.attach_money), label: "Expense"),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.bar_chart), label: "Insights"),
-          BottomNavigationBarItem(icon: Icon(Icons.lightbulb), label: "Tips"),
-        ],
-      ),
     );
   }
 
