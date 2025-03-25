@@ -1021,13 +1021,24 @@ class _FunScreenState extends State<FunScreen> {
   }
 
   Future<void> _loadBudget() async {
+  try {
     final prefs = await SharedPreferences.getInstance();
+    final savedBudget = prefs.getDouble('budget_$_category');
+    
     setState(() {
-      _totalBudget = prefs.getDouble('budget$_category') ?? 5000;
+      _totalBudget = savedBudget ?? 30000; // Use your default value
+      _budgetLeft = _totalBudget - _budgetSpent;
+      _isBudgetExceeded = _budgetLeft < 0;
+    });
+  } catch (e) {
+    print('Error loading budget: $e');
+    setState(() {
+      _totalBudget = 30000; // Fallback value
       _budgetLeft = _totalBudget - _budgetSpent;
       _isBudgetExceeded = _budgetLeft < 0;
     });
   }
+}
 
   Future<void> _saveBudget(double newBudget) async {
     final prefs = await SharedPreferences.getInstance();
@@ -1036,7 +1047,7 @@ class _FunScreenState extends State<FunScreen> {
 
   Future<void> _fetchSpendingData() async {
     final url = Uri.parse(
-        "http://127.0.0.1:5000/category-spending-week?user_id=${widget.userId}&category=Fun"); // Replace "Fun" with the desired category
+        "http://10.0.2.2:5000/category-spending-week?user_id=${widget.userId}&category=Fun"); // Replace "Fun" with the desired category
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -1058,7 +1069,7 @@ class _FunScreenState extends State<FunScreen> {
 
   Future<void> _fetchBudgetSpent() async {
     final url = Uri.parse(
-        "http://127.0.0.1:5000/category-budget-spent?user_id=${widget.userId}&category=Fun"); // Replace "Fun" with the desired category
+        "http://10.0.2.2:5000/category-budget-spent?user_id=${widget.userId}&category=Fun"); // Replace "Fun" with the desired category
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {

@@ -27,7 +27,7 @@ def get_db_connection():
     conn = mysql.connector.connect(
         host='localhost',
         user='root',
-        password='njn@2003',  
+        password='Alfin@2022',  
         database='finance_db'  
     )
     return conn
@@ -491,47 +491,7 @@ def get_prediction():
 
     return jsonify({"user_id": user_id, "predicted_next_month_expense": predicted_amount})
 
-# def get_last_five_months():
-#     now = datetime.now()
-#     months = []
-#     for i in range(4, -1, -1):
-#         month = (now - timedelta(days=30 * i)).strftime('%Y-%m')  # Format: YYYY-MM
-#         months.append(month)
-#     return months
 
-# @app.route('/monthly-expense/<int:user_id>', methods=['GET'])
-# def get_monthly_expense(user_id):
-#     try:
-#         conn = mysql.connector.connect(**db_config)
-#         cursor = conn.cursor(dictionary=True)
-
-#         last_five_months = get_last_five_months()
-
-#         query = """
-#         SELECT DATE_FORMAT(date, '%Y-%m') as month, SUM(amount) as total
-#         FROM transactions
-#         WHERE user_id = %s AND DATE_FORMAT(date, '%Y-%m') IN (%s, %s, %s, %s, %s)
-#         GROUP BY month
-#         ORDER BY month;
-#         """
-#         cursor.execute(query, [user_id] + last_five_months)
-
-#         result = cursor.fetchall()
-#         cursor.close()
-#         conn.close()
-
-#         # Format the response to ensure all 5 months are included
-#         expenses_data = {month: 0 for month in last_five_months}  # Default to 0
-#         for row in result:
-#             expenses_data[row['month']] = float(row['total'])
-
-#         return jsonify({
-#             "months": list(expenses_data.keys()),
-#             "expenses": list(expenses_data.values())
-#         })
-
-#     except Exception as e:
-#         return jsonify({"error": str(e)}), 500
 
 def fetch_user_transactions(user_id):
     connection = get_db_connection()

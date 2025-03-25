@@ -551,8 +551,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
-  final String apiUrl = "http://127.0.0.1:5000/transactions";
-  //final String apiUrl = "http://10.0.2.2:5000/transactions";
+  //final String apiUrl = "http://127.0.0.1:5000/transactions";
+  final String apiUrl = "http://10.0.2.2:5000/transactions";
 
   Future<List<Map<String, dynamic>>> _fetchTransactions() async {
     try {
@@ -937,7 +937,7 @@ class _AllTransactionsState extends State<AllTransactions> {
     if (_selectedTransactions.isEmpty) return;
 
     final response = await http.delete(
-      Uri.parse("http://127.0.0.1:5000/transactions/delete"),
+      Uri.parse("http://10.0.2.2:5000/transactions/delete"),
       headers: {"Content-Type": "application/json"},
       body: json.encode({"transaction_ids": _selectedTransactions}),
     );
@@ -1053,7 +1053,7 @@ class _AllTransactionsState extends State<AllTransactions> {
   Future<List<Map<String, dynamic>>> _fetchTransactions(int userId) async {
     try {
       final response = await http
-          .get(Uri.parse("http://127.0.0.1:5000/transactions/$userId"));
+          .get(Uri.parse("http://10.0.2.2:5000/transactions/$userId"));
 
       if (response.statusCode == 200) {
         List<dynamic> jsonData = json.decode(response.body);

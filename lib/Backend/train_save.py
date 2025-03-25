@@ -6,7 +6,7 @@ from sklearn.ensemble import RandomForestRegressor
 
 # Database Connection (Using SQLAlchemy)
 DB_USER = "root"
-DB_PASSWORD = "njn%402003"
+DB_PASSWORD = "Alfin%402022"
 DB_HOST = "localhost"
 DB_NAME = "finance_db"
 
@@ -45,7 +45,7 @@ def create_features(data):
     users = data["user_id"].unique()
     all_X, all_y = [], []
 
-    for user_id in users:
+    for user_id in users:   
         user_data = data[data["user_id"] == user_id].copy()
         if len(user_data) < 3:
             continue  
