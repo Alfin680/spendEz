@@ -261,24 +261,31 @@ def get_insights(user_id):
         # Calculate start date based on duration
         today = datetime.today()
         if duration == "Week":
-            start_date = today - timedelta(days=today.weekday())  # Start of the week (last Sunday)
+            # Correct week calculation (Monday as start of week)
+            start_date = today - timedelta(days=today.weekday())
         elif duration == "Month":
             start_date = today.replace(day=1)  # Start of the month
         elif duration == "Year":
             start_date = today.replace(month=1, day=1)  # Start of the year
 
-        # Convert to SQL-compatible datetime format
-        start_date = start_date.strftime('%Y-%m-%d %H:%M:%S')
+        # Convert to SQL-compatible date format (without time)
+        start_date_str = start_date.strftime('%Y-%m-%d')
+
+        # Debug print
+        print(f"Calculated {duration} start date: {start_date_str}")
 
         # Fetch transactions for the selected duration
         query = """
         SELECT e.category, SUM(e.amount) as total_amount
         FROM transactions e
-        WHERE e.user_id = %s AND e.date_time >= %s
+        WHERE e.user_id = %s AND DATE(e.date_time) >= %s
         GROUP BY e.category
         """
-        cursor.execute(query, (user_id, start_date))
+        cursor.execute(query, (user_id, start_date_str))
         results = cursor.fetchall()
+
+        # Debug print
+        print(f"Found {len(results)} transactions for {duration}")
 
         # Define default categories and colors
         category_colors = {
@@ -323,7 +330,7 @@ def get_insights(user_id):
     except Exception as e:
         # Handle other unexpected errors
         return jsonify({"error": f"An unexpected error occurred: {e}"}), 500
-
+    
 @app.route('/tips', methods=['GET'])
 def get_finance_tips():
     conn = get_db_connection()
@@ -364,7 +371,6 @@ def get_category_total():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 
 @app.route('/category-spending-week', methods=['GET'])
 def category_spending_week():
@@ -444,6 +450,32 @@ def category_budget_spent():
     return jsonify({
         "budget_spent": total_spent
     })
+
+
+@app.route('/transactions/delete', methods=['DELETE'])
+def delete_transactions():
+    try:
+        transaction_ids = request.json.get('transaction_ids', [])
+        if not transaction_ids:
+            return jsonify({"error": "No transaction IDs provided"}), 400
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Dynamically create placeholders for the SQL query
+        placeholders = ', '.join(['%s'] * len(transaction_ids))
+        query = f"DELETE FROM transactions WHERE transaction_id IN ({placeholders})"
+
+        cursor.execute(query, tuple(transaction_ids))  # Pass values as a tuple
+        conn.commit()
+
+        return jsonify({"message": f"Deleted {cursor.rowcount} transactions successfully!"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if cursor: cursor.close()
+        if conn: conn.close()
 
 @app.route("/predict", methods=["GET"])
 def get_prediction():
