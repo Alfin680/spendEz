@@ -84,7 +84,10 @@ class _AnalysisPageState extends State<AnalysisPage> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text("PREDICTED EXPENSE"),
+        title: Text(
+          "Predicted Expense",
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+        ),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -114,13 +117,12 @@ class _AnalysisPageState extends State<AnalysisPage> {
                 style: TextStyle(color: Colors.grey),
               ),
               SizedBox(height: 20),
-              // Budget Recommendation Heading
               Text(
                 "Budget Recommendation",
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87, // Dark text for visibility
+                  color: Colors.black87,
                 ),
               ),
 
@@ -141,7 +143,6 @@ class _AnalysisPageState extends State<AnalysisPage> {
               _buildExpenseItem(8, "REMAINING",
                   budgetAllocation["Savings"] ?? 0.0, Icons.savings),
 
-              // Move these inside Column
               SizedBox(height: 20),
 
               Text(
@@ -160,9 +161,6 @@ class _AnalysisPageState extends State<AnalysisPage> {
           ),
         ),
       ),
-
-      // Caption at the bottom
-      // Some space before bottom navigation
     );
   }
 

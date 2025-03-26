@@ -157,10 +157,6 @@ def forgot_password():
         sender_email = os.getenv("EMAIL_SENDER")
         sender_password = os.getenv("EMAIL_PASSWORD")
 
-        # Debug: Print email credentials
-        print(f"Email Sender: {sender_email}")
-        print(f"Email Password: {sender_password}")
-
         if not sender_email or not sender_password:
             return jsonify({"error": "Email credentials are not configured!"}), 500
 
@@ -417,7 +413,7 @@ def category_spending_week():
         "labels": labels
     })
 
-# Common API to fetch total budget spent for the current month for a specific category
+
 @app.route('/category-budget-spent', methods=['GET'])
 def category_budget_spent():
     user_id = request.args.get('user_id')
@@ -462,7 +458,6 @@ def delete_transactions():
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # Dynamically create placeholders for the SQL query
         placeholders = ', '.join(['%s'] * len(transaction_ids))
         query = f"DELETE FROM transactions WHERE transaction_id IN ({placeholders})"
 
@@ -514,7 +509,7 @@ def fetch_user_transactions(user_id):
 
     return df
 
-# Budget Allocation Logic
+
 def calculate_budget_allocation(data, predicted_amount):
     categories = {
         "Needs": ["Food", "Bills", "Rent"],
@@ -563,7 +558,7 @@ def calculate_budget_allocation(data, predicted_amount):
 
 @app.route("/budget-allocation", methods=["GET"])
 def budget_allocation():
-    #user_id = session.get("user_id")  # Get logged-in user_id
+    #user_id = session.get("user_id")  
     user_id = request.args.get("user_id", type=int)
     if not user_id:
         return jsonify({"error": "User not logged in"}), 401

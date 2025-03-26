@@ -137,7 +137,10 @@ class _InsightsPageState extends State<InsightsPage> {
         title: Text(
           "Insights",
           style: TextStyle(
-              color: Colors.black, fontWeight: FontWeight.bold, fontSize: 22),
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 30,
+          ),
         ),
         actions: [
           IconButton(
